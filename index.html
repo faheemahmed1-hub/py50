@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Py50 — Master Problem Solving</title>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+<style>
+:root{
+  --bg:#0b0c0f;--bg2:#0f1115;--panel:#14171c;--panel2:#181b21;--panel3:#1d2128;
+  --border:#2a2f38;--text:#f2f4f7;--muted:#9ba3af;--accent:#ff9f1c;--accent2:#7c5cff;
+  --green:#20c77a;--red:#ff5a67;--blue:#4aa3ff;--shadow:0 18px 60px rgba(0,0,0,.32)
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+body{overflow:hidden}
+.app{height:100vh;display:flex;background:linear-gradient(180deg,#0b0c0f,#0b0c0f)}
+.sidebar{width:236px;flex:0 0 236px;background:#0d0f12;border-right:1px solid #252a31;display:flex;flex-direction:column;padding:18px 12px;gap:5px;z-index:20}
+.brand{padding:4px 10px 20px;font-weight:900;display:flex;gap:9px;align-items:center;font-size:18px}
+.brand .flame{font-size:20px}
+.brand small{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-left:auto}
+.navgroup{display:flex;flex-direction:column;gap:4px}
+.navbtn{width:100%;display:flex;align-items:center;gap:11px;border:1px solid transparent;background:transparent;color:#aeb5c0;padding:11px 12px;border-radius:9px;font-size:13px;font-weight:800;text-align:left}
+.navbtn:hover{background:#171a20;color:#fff}
+.navbtn.active{background:#241b0d;border-color:#3e2b12;color:var(--accent)}
+.navicon{width:22px;text-align:center;font-size:16px}
+.side-spacer{flex:1}
+.side-user{font-size:11px;color:#828b98;padding:8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.authnav{border-top:1px solid #252a31;margin-top:6px;padding-top:8px}
+.main{min-width:0;flex:1;display:flex;flex-direction:column;position:relative}
+.topbar{height:58px;flex:0 0 58px;border-bottom:1px solid #252a31;background:rgba(10,12,15,.92);display:flex;align-items:center;padding:0 18px;gap:10px;backdrop-filter:blur(10px);z-index:10}
+.mobile-menu{display:none}
+.top-title{font-weight:900;font-size:14px}
+.top-sub{font-size:11px;color:var(--muted);font-weight:700}
+.top-spacer{flex:1}
+.pill{padding:6px 9px;border:1px solid #313640;background:#171a20;border-radius:999px;font-size:11px;color:#b6bec9}
+.btn{border:1px solid #353a43;background:#171a20;color:#eef1f5;border-radius:8px;padding:9px 13px;font-size:12px;font-weight:900}
+.btn:hover{background:#20242b}
+.btn.accent{background:var(--accent);border-color:#ffb344;color:#15110a}
+.btn.green{background:#13a25a;border-color:#13a25a;color:#fff}
+.view{display:none;min-height:0;flex:1}
+.view.active{display:flex}
+.page-scroll{overflow:auto;height:100%;padding:36px 38px 50px}
+.container{max-width:1180px;margin:0 auto}
+.hero{position:relative;overflow:hidden;display:grid;grid-template-columns:1.15fr .85fr;gap:26px;border:1px solid #2d323b;border-radius:20px;padding:38px;background:
+radial-gradient(circle at 78% 20%,rgba(255,159,28,.13),transparent 32%),
+radial-gradient(circle at 20% 110%,rgba(124,92,255,.10),transparent 30%),#12151a;box-shadow:var(--shadow)}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom right,#000,transparent 85%);pointer-events:none}
+.hero-copy,.hero-visual{position:relative;z-index:1}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--accent);font-weight:900;margin-bottom:14px}
+.hero h1{margin:0;font-size:44px;line-height:1.08;letter-spacing:-.03em;max-width:720px}
+.hero h1 span{color:var(--accent)}
+.hero-lead{font-size:15px;line-height:1.8;color:#c8ced8;margin:18px 0 20px;max-width:680px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.progress-line{display:flex;align-items:center;gap:8px;margin-top:28px;font-size:12px;color:#9da5b0;font-weight:800}
+.progress-line b{color:#fff}
+.progress-line span.sep{color:#535b67}
+.visual-card{height:100%;min-height:320px;border:1px solid #303641;border-radius:16px;background:#0e1014;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);padding:18px;display:flex;flex-direction:column;justify-content:space-between}
+.window-bar{display:flex;gap:6px;align-items:center;margin-bottom:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:#39414d}
+.window-title{margin-left:auto;color:#6f7885;font-size:10px;font-weight:800}
+.code-lines{font:12px/1.95 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#c9d1dc}
+.code-lines .blue{color:#69b1ff}.code-lines .orange{color:#ffb25c}.code-lines .green{color:#75d6a6}.code-lines .purple{color:#b6a7ff}
+.tokens{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.token{padding:9px 10px;border:1px solid #2b313b;background:#141820;border-radius:8px;color:#aeb6c2;font:10px ui-monospace,SFMono-Regular,Menlo,monospace}
+.section-title{display:none}
+.path-grid{display:none}
+.path-card{display:none}
+
+.path-num{display:none}
+.path-card h3,.path-card p{display:none}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.stat-card{border:1px solid #2b3038;background:#12151a;border-radius:12px;padding:18px}
+.stat-label{font-size:10px;color:#8f98a5;text-transform:uppercase;letter-spacing:.08em;font-weight:900}
+.stat-big{font-size:28px;font-weight:900;margin-top:6px}
+.progress{height:8px;border-radius:999px;background:#232832;overflow:hidden;margin-top:10px}.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#ffc566);border-radius:999px}
+.auth-view{align-items:center;justify-content:center;padding:24px}
+.auth-card{width:min(440px,100%);border:1px solid #2d323a;background:#12151a;border-radius:18px;padding:28px;box-shadow:var(--shadow)}
+.auth-card h2{margin:0 0 6px;font-size:24px}.auth-card p{margin:0 0 18px;color:#949daa;font-size:12px;line-height:1.6}
+.auth-tabs{display:flex;gap:6px;margin-bottom:14px}.auth-tabs button{flex:1;border:1px solid #303641;background:#171a20;color:#aeb5c0;border-radius:8px;padding:9px;font-weight:900;font-size:12px}.auth-tabs button.active{background:var(--accent);color:#15110a;border-color:#ffb344}
+.field{margin-bottom:10px}.field label{display:block;font-size:10px;color:#929aa6;font-weight:900;margin:0 0 6px;text-transform:uppercase;letter-spacing:.08em}.field input{width:100%;border:1px solid #303641;background:#0f1217;color:#f4f6f8;border-radius:8px;padding:11px 12px;outline:none}.field input:focus{border-color:#586170;box-shadow:0 0 0 3px rgba(124,92,255,.10)}
+.auth-msg{min-height:18px;color:var(--red);font-size:11px;font-weight:700;margin:4px 0 10px}
+.list-wrap{height:100%;overflow:auto;padding:30px 34px}
+.list-head{display:flex;gap:12px;align-items:end;margin-bottom:18px}.list-head h1{margin:0;font-size:28px}.list-head p{margin:5px 0 0;color:#8e97a4;font-size:12px}
+.list-tools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.list-tools input,.list-tools select{border:1px solid #303641;background:#111419;color:#e8ebef;border-radius:8px;padding:10px 11px;font-size:11px;outline:none}
+.problem-table{border:1px solid #2b3038;border-radius:12px;overflow:hidden;background:#12151a}
+.problem-row{display:grid;grid-template-columns:46px 1fr 110px 80px 90px 72px;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid #242a32;font-size:12px}
+.problem-row:last-child{border-bottom:0}.problem-row.header{background:#171a20;color:#7f8793;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:900}
+.problem-row:hover:not(.header){background:#161a20}
+.problem-row .num{color:#8e98a6;font-weight:800}.problem-name{font-weight:850;color:#f2f4f7}.problem-skill{font-size:10px;color:#808995;margin-top:3px}
+.tag{display:inline-flex;align-items:center;padding:5px 7px;border-radius:999px;border:1px solid #343a44;background:#181c22;color:#b8c0cc;font-size:10px;font-weight:800}
+.tag.diff{color:#8eddb3}.tag.rate{color:#ffc472}.solved-badge{font-size:11px;font-weight:900}.solved-badge.ok{color:var(--green)}.solved-badge.no{color:#6d7683}
+.solve-link{justify-self:end}
+.workspace{height:100%;display:flex;min-height:0}
+.workspace-left{width:48%;min-width:390px;display:flex;flex-direction:column;border-right:1px solid #2a2f37;background:#111419}
+.workspace-right{flex:1;min-width:0;display:flex;flex-direction:column;background:#0f1115}
+.ws-tabs{height:44px;flex:0 0 44px;display:flex;gap:18px;align-items:center;padding:0 14px;border-bottom:1px solid #2a2f37;background:#171a20}
+.ws-tab{font-size:11px;color:#888f9b;font-weight:800;cursor:pointer}.ws-tab.active{color:#fff}
+.problem-scroll{overflow:auto;padding:24px 24px 40px}
+.problem-top{display:flex;gap:11px;align-items:flex-start}.pnum{font-size:26px;font-weight:900;line-height:1}.ptitle{font-size:25px;font-weight:900;line-height:1.15;letter-spacing:-.02em}
+.badges{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.section{margin-top:20px}.section h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#a7afbb}.statement{font-size:13px;line-height:1.8;color:#d9dde3}
+.kv{border:1px solid #2a3038;background:#14181e;border-radius:10px;padding:12px;margin-top:12px}.kv b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#929aa6;margin-bottom:5px}.kv div{font-size:12px;color:#c7ced8;line-height:1.6}
+.example-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.sample{border:1px solid #2a3038;background:#0d1014;border-radius:8px;overflow:hidden}.sample-cap{padding:8px 10px;border-bottom:1px solid #232932;color:#8f98a5;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.sample pre{margin:0;padding:10px;color:#f1f3f6;font:11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;min-height:60px}
+.explain{margin-top:12px;border:1px solid #2a3038;border-radius:10px;overflow:hidden}.explain-head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#171b21;font-size:11px;font-weight:900}.explain-body{padding:12px;color:#aeb6c2;font-size:12px;line-height:1.7}
+.editor-top{height:44px;flex:0 0 44px;display:flex;align-items:center;gap:9px;padding:0 12px;border-bottom:1px solid #2a2f37;background:#171a20}.pybadge{color:#69b1ff;font-weight:900}.editor-title{font-size:12px;font-weight:800}.editor-sub{font-size:10px;color:#7e8793}.editor-tools{margin-left:auto;display:flex;gap:4px}.mini{width:30px;height:30px;border:0;border-radius:6px;background:transparent;color:#858e9a;font-weight:900}.mini:hover{background:#242a32;color:#fff}
+.editor-wrap{min-height:260px;flex:1;background:#0d1014}
+.results{height:300px;flex:0 0 300px;border-top:1px solid #2a2f37;background:#12151a;display:flex;flex-direction:column}
+.result-tabs{height:40px;display:flex;align-items:center;gap:16px;padding:0 12px;border-bottom:1px solid #282e36;background:#171a20}.result-tab{font-size:10px;color:#848d99;font-weight:900}.result-tab.active{color:#fff}
+.result-content{overflow:auto;padding:14px}.empty{height:100%;display:flex;align-items:center;justify-content:center;color:#69727d;font-size:12px;text-align:center}
+.banner{font-size:21px;font-weight:900;margin-bottom:5px}.banner.ok{color:var(--green)}.banner.bad{color:var(--red)}.banner.warn{color:#ffb45e}.meta{font-size:10px;color:#8b94a0;margin-bottom:11px}
+.testbox{border:1px solid #2b3139;border-radius:8px;overflow:hidden;background:#0d1014}.testhead{padding:8px 10px;border-bottom:1px solid #262c34;color:#89929e;font-size:9px;font-weight:900;text-transform:uppercase}.testgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}.smallbox{border:1px solid #252b34;background:#0a0d11;border-radius:7px;overflow:hidden}.smallcap{padding:7px 8px;border-bottom:1px solid #222831;color:#727b87;font-size:8px;font-weight:900;text-transform:uppercase}.smallbox pre{margin:0;padding:8px;color:#e9edf2;font:10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;min-height:50px}
+.account{height:100%;overflow:auto;padding:36px}.account-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;max-width:1100px;margin:0 auto}.account-card{border:1px solid #2b3038;background:#12151a;border-radius:14px;padding:20px}.account-card h2,.account-card h3{margin:0}.account-card h2{font-size:23px}.account-card h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#969faa}
+.profile-row{display:flex;justify-content:space-between;gap:20px;padding:13px 0;border-bottom:1px solid #262c34;font-size:12px}.profile-row:last-child{border-bottom:0}.profile-row span:first-child{color:#858e9a}.profile-row b{font-size:12px}
+.metric{display:flex;align-items:end;justify-content:space-between;margin-top:16px}.metric strong{font-size:34px}.metric small{font-size:10px;color:#818a96}
+.toast{position:fixed;right:20px;bottom:20px;z-index:100;padding:10px 13px;border-radius:9px;background:#20252c;border:1px solid #39414c;color:#fff;font-size:11px;font-weight:800;box-shadow:var(--shadow);display:none}
+.overlay{display:none;position:fixed;inset:58px 0 0 0;background:rgba(0,0,0,.55);z-index:25}
+@media (max-width:1100px){
+  .sidebar{width:72px;flex-basis:72px;padding:14px 8px;align-items:center}
+  .brand{padding:4px 0 18px;width:52px;justify-content:center}.brand span:not(.flame),.brand small,.navbtn span:last-child,.side-user{display:none}
+  .navbtn{width:52px;justify-content:center;padding:11px 0}.navicon{width:auto}
+  .account-grid{grid-template-columns:1fr}
+  .hero{grid-template-columns:1fr}.path-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:850px){
+  body{overflow:auto}.app{min-height:100vh;height:auto}
+  .sidebar{display:none}.mobile-menu{display:block}
+  .topbar{position:sticky;top:0}
+  .page-scroll{padding:20px}.hero{padding:24px}.hero h1{font-size:34px}.path-grid,.stats-grid{grid-template-columns:1fr}
+  .list-head{align-items:stretch;flex-direction:column}.list-tools{margin-left:0}
+  .problem-row{grid-template-columns:36px 1fr 80px 60px}.problem-row > :nth-child(3),.problem-row > :nth-child(5){display:none}
+  .workspace{height:auto;min-height:calc(100vh - 58px);display:block}.workspace-left,.workspace-right{width:100%;min-width:0;border:0}.workspace-right{min-height:680px}
+  .editor-wrap{height:360px;flex:none}.results{height:270px;flex-basis:270px}
+  .account{padding:20px}
+}
+
+/* ===== Final responsive/auth/home polish ===== */
+.app.auth-required .sidebar,
+.app.auth-required .main > .topbar,
+.app.auth-required .main > .view:not(#view-auth){display:none!important}
+.app.auth-required .main{width:100%;height:100vh}
+.app.auth-required #view-auth{display:flex!important;height:100vh;min-height:100vh;flex:1}
+
+/* Beginner-friendly home: simple message with subtle coding/operator motion. */
+.home-simple{position:relative;overflow:hidden;border:1px solid #2d323b;border-radius:18px;padding:34px;background:#12151a;min-height:410px;display:flex;align-items:center}
+.home-simple::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:28px 28px;opacity:.65;pointer-events:none}
+.home-simple-copy{position:relative;z-index:2;max-width:760px}
+.home-simple h1{margin:0;font-size:38px;line-height:1.12;letter-spacing:-.03em}
+.home-simple h1 span{color:var(--accent)}
+.home-simple p{margin:14px 0 0;color:#b6bec9;font-size:14px;line-height:1.75;max-width:700px}
+.beginner-note{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.beginner-chip{padding:7px 10px;border:1px solid #303641;background:#171b21;border-radius:999px;color:#bfc7d2;font:11px ui-monospace,SFMono-Regular,Menlo,monospace}
+.beginner-chip.accent{color:#ffc36d;border-color:#4a3517;background:#20170b}
+.simple-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.float-code{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.float-code span{position:absolute;display:block;padding:6px 9px;border:1px solid #252c35;background:rgba(13,16,20,.68);border-radius:7px;color:#5e6876;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;animation:drift 11s ease-in-out infinite}
+.float-code span:nth-child(1){left:8%;top:15%;animation-delay:-1s}.float-code span:nth-child(2){left:20%;top:76%;animation-delay:-5s}.float-code span:nth-child(3){left:50%;top:11%;animation-delay:-8s}.float-code span:nth-child(4){left:72%;top:68%;animation-delay:-3s}.float-code span:nth-child(5){left:84%;top:22%;animation-delay:-7s}.float-code span:nth-child(6){left:66%;top:82%;animation-delay:-2s}.float-code span:nth-child(7){left:42%;top:72%;animation-delay:-9s}.float-code span:nth-child(8){left:5%;top:47%;animation-delay:-6s}
+@keyframes drift{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-12px,0)}}
+@media (max-width:850px){.home-simple{min-height:360px;padding:24px}.home-simple h1{font-size:30px}.home-simple p{font-size:13px}.float-code span:nth-child(3),.float-code span:nth-child(5),.float-code span:nth-child(6){display:none}}
+
+
+/* ===== Account verification and Bengali problem explanation ===== */
+.auth-shell{position:relative;overflow:hidden}.auth-shell:before{content:"";position:absolute;right:-70px;top:-80px;width:250px;height:250px;border-radius:50%;background:rgba(255,159,28,.08);filter:blur(10px);pointer-events:none}
+.auth-brand{display:flex;align-items:center;gap:8px;font-size:18px;margin-bottom:18px;position:relative;z-index:1}.auth-brand .flame{font-size:20px}.auth-level{margin-left:auto;font-size:9px;color:#8b95a2;border:1px solid #303641;border-radius:999px;padding:5px 8px}
+.auth-primary{width:100%;text-align:center}.verify-row{display:flex;gap:8px;align-items:center}.timer{min-width:58px;text-align:right;color:#8e97a4;font-size:10px}.step-pill{display:flex;align-items:center;gap:8px;color:#dfe4ea;font-size:11px;font-weight:900;margin-bottom:12px}.step-pill span{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#241b0d;color:var(--accent);border:1px solid #4a3517}.check-row{display:flex;align-items:center;gap:8px;color:#9aa3af;font-size:11px;margin:8px 0 12px;cursor:pointer}.check-row input{accent-color:var(--accent)}.auth-foot{margin-top:10px;color:#707a87;font-size:10px;line-height:1.55}.demo-code{margin:10px 0;border:1px solid #493619;background:#1d160b;border-radius:9px;padding:10px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.demo-code>div:first-child{display:flex;flex-direction:column;gap:3px}.demo-code>div:first-child span{color:#8e826e;font-size:9px}.demo-code-value{grid-column:1/-1;font:700 22px/1 ui-monospace,monospace;letter-spacing:6px;color:#ffd07a}.demo-code .btn{padding:7px 9px;font-size:10px}.verified-pill{border:1px solid #214a39;background:#0f2019;color:#86d7ad;border-radius:8px;padding:9px 10px;font-size:10px;margin-bottom:12px}.password-field{position:relative}.password-field input{padding-right:58px}.password-toggle{position:absolute;right:7px;bottom:7px;border:0;background:transparent;color:#9da6b2;font-size:10px;font-weight:800}.bn-explain{border:1px solid #2e3640;background:#0f1419;border-radius:10px;margin-top:14px;overflow:hidden}.bn-explain-head{display:flex;align-items:center;justify-content:space-between;padding:10px 11px;border-bottom:1px solid #272e36;background:#171b21}.bn-explain-head b{font-size:11px}.bn-explain-head button{border:1px solid #343b45;background:#1b2027;color:#d7dde5;border-radius:6px;padding:5px 9px;font-size:10px;font-weight:800}.bn-explain-body{padding:12px;color:#c1c8d1;font-size:12px;line-height:1.85}.bn-explain-body.hidden{display:none}
+@media(max-width:850px){.verify-row{flex-direction:column;align-items:stretch}.timer{align-self:flex-end}}
+
+
+/* ===== Final V2: beginner coding vibe ===== */
+.home-simple{min-height:450px}
+.home-focus-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;color:#7f8996;font-size:11px}
+.home-focus-row span{border:1px solid #2b313a;background:#0f1318;border-radius:999px;padding:7px 10px}
+.home-focus-row b{color:#dfe5ec}
+.coding-vibe{position:relative;min-height:330px;border:1px solid #2c333c;border-radius:16px;background:#0c1014;overflow:hidden;padding:18px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}
+.coding-vibe::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:24px 24px}
+.scanline{position:absolute;left:0;right:0;top:-20%;height:30%;background:linear-gradient(180deg,transparent,rgba(255,159,28,.05),transparent);animation:scan 6s linear infinite}
+@keyframes scan{0%{transform:translateY(0)}100%{transform:translateY(430px)}}
+.vibe-title{position:relative;color:#626d7b;font:800 9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.18em}
+.vibe-equation{position:relative;margin-top:26px;display:flex;gap:10px;align-items:center;color:#d6dce4;font:800 13px ui-monospace,SFMono-Regular,Menlo,monospace}
+.vibe-equation b{color:var(--accent);animation:blink 1.3s ease-in-out infinite}
+.typed{color:#79bfff}.vibe-equation span:last-child{color:#7be0a7}
+@keyframes blink{50%{opacity:.35}}
+.operator-cloud{position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:24px;max-width:340px}
+.operator-cloud span{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:28px;border:1px solid #2b323c;background:#12171d;border-radius:7px;color:#8893a1;font:900 11px ui-monospace,SFMono-Regular,Menlo,monospace;animation:operatorFloat 4.5s ease-in-out infinite}
+.operator-cloud span:nth-child(2){animation-delay:-.6s}.operator-cloud span:nth-child(3){animation-delay:-1.1s}.operator-cloud span:nth-child(4){animation-delay:-1.6s}.operator-cloud span:nth-child(5){animation-delay:-2.1s}.operator-cloud span:nth-child(6){animation-delay:-2.6s}.operator-cloud span:nth-child(7){animation-delay:-3.1s}.operator-cloud span:nth-child(8){animation-delay:-3.6s}.operator-cloud span:nth-child(9){animation-delay:-4.1s}
+@keyframes operatorFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.mini-code{position:absolute;left:18px;right:18px;bottom:68px;border:1px solid #242b34;border-radius:10px;background:#0a0d11;padding:12px 13px;color:#aab4c1;font:10px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace}
+.mini-code i{display:inline-block;width:23px;color:#5f6977;font-style:normal}.mini-code em{color:#7fbfff;font-style:normal}.mini-code strong{color:#ffbe72}.mini-code .cursor-bar{position:absolute;width:1px;height:13px;background:#fff;animation:cursorBlink .9s infinite;right:14px;bottom:13px}
+@keyframes cursorBlink{50%{opacity:0}}
+.vibe-badges{position:absolute;left:18px;bottom:18px;display:flex;gap:6px;flex-wrap:wrap}
+.vibe-badges span{padding:5px 7px;border:1px solid #252c35;background:#10151b;border-radius:6px;color:#687381;font:9px ui-monospace,SFMono-Regular,Menlo,monospace}
+.saved-accounts{margin-top:-4px;margin-bottom:9px;gap:5px}
+.saved-account-pill,.saved-account-item{border:1px solid #303641;background:#141920;color:#cfd6df;border-radius:7px;padding:7px 9px;font-size:10px;font-weight:800;text-align:left}
+.saved-account-item:hover,.saved-account-pill:hover{background:#1c232c}
+.email-send-status{margin:9px 0 10px;padding:9px 10px;border:1px solid #254a39;background:#0d1a15;border-radius:8px;color:#8bd8af;font-size:10px;line-height:1.55}
+
+</style>
+</head>
+<body>
+<script>
+/* New standalone release: never inherit an old test-session from previous Py50 files. */
+try{
+  sessionStorage.removeItem('py50_session_v5');
+}catch(e){}
+</script>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="flame">🔥</span><span>Py50</span><small>LVL 1</small></div>
+    <div class="navgroup" id="navgroup">
+      <button class="navbtn active" data-view="home"><span class="navicon">⌂</span><span>Home</span></button>
+      <button class="navbtn" data-view="account"><span class="navicon">◉</span><span>My Account</span></button>
+      <button class="navbtn" data-view="problems"><span class="navicon">▣</span><span>Problems</span></button>
+    </div>
+    <div class="side-spacer"></div>
+    <div class="side-user" id="sideUser">Not signed in</div>
+    <div class="navgroup authnav">
+      <button class="navbtn" id="authBtn"><span class="navicon">↪</span><span>Sign in</span></button>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <button class="btn mobile-menu" id="mobileNav">☰</button>
+      <div><div class="top-title">Master Problem Solving</div><div class="top-sub">Build better logic • Practice consistently</div></div>
+      <div class="top-spacer"></div>
+      <div class="pill" id="topSolved">0 / 50 solved</div>
+      <button class="btn accent" id="topProblems">Open Problems</button>
+    </header>
+
+    <section class="view active" id="view-home">
+      <div class="page-scroll"><div class="container">
+        <div class="home-simple">
+          <div class="float-code" aria-hidden="true">
+            <span>+</span><span>if (x &gt; 0)</span><span>%</span><span>print()</span>
+            <span>//</span><span>==</span><span>for</span><span>input()</span>
+          </div>
+          <div class="home-simple-copy">
+            <div class="eyebrow">Py50 • Level 1 • Beginner Practice</div>
+            <h1>Master Problem Solving. <span>Build Better Logic.</span></h1>
+            <p>Start with simple Python problems. Practice input, output, operators, conditions, loops, and basic problem-solving one step at a time.</p>
+            <div class="beginner-note">
+              <span class="beginner-chip accent">Very Easy</span>
+              <span class="beginner-chip">Easy</span>
+              <span class="beginner-chip">Python 3</span>
+              <span class="beginner-chip">50 Problems</span>
+            </div>
+            <div class="simple-actions">
+              <button class="btn accent" id="heroStart">Start Solving →</button>
+            </div>
+            <div class="home-focus-row">
+              <span><b>Very Easy</b> • inputs & operators</span>
+              <span><b>Easy</b> • conditions & loops</span>
+              <span><b>Python 3</b> • 50 problems</span>
+            </div>
+          </div>
+          <div class="coding-vibe" aria-hidden="true">
+            <div class="scanline"></div>
+            <div class="vibe-title">PY50 / PRACTICE</div>
+            <div class="vibe-equation">
+              <span class="typed">input()</span><b>→</b><span>logic</span><b>→</b><span>print()</span>
+            </div>
+            <div class="operator-cloud">
+              <span>+</span><span>-</span><span>*</span><span>/</span><span>%</span>
+              <span>==</span><span>!=</span><span>></span><span><</span>
+            </div>
+            <div class="mini-code">
+              <div><i>01</i> age = <em>int</em>(input())</div>
+              <div><i>02</i> days = age * <strong>365</strong></div>
+              <div><i>03</i> <em>print</em>(days)</div>
+              <div class="cursor-bar"></div>
+            </div>
+            <div class="vibe-badges"><span>if</span><span>for</span><span>while</span><span>list[]</span><span>dict{}</span></div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">Problems</div><div class="stat-big">50</div><div class="muted">Level 1 practice set</div></div>
+          <div class="stat-card"><div class="stat-label">Current Rating</div><div class="stat-big" id="homeRate">0</div><div class="muted">Based on unique solved problems</div></div>
+          <div class="stat-card"><div class="stat-label">Progress</div><div class="stat-big" id="homeProgress">0%</div><div class="progress"><i id="homeBar"></i></div></div>
+        </div>
+      </div></div>
+    </section>
+
+    <section class="view auth-view" id="view-auth">
+      <div class="auth-card auth-shell">
+        <div class="auth-brand"><span class="flame">🔥</span><b>Py50</b><span class="auth-level">Level 1</span></div>
+        <div class="eyebrow">Account required</div>
+        <h2 id="authTitle">Create your Py50 account</h2>
+        <p id="authSubtitle">Create and verify your account first. The learning interface stays locked until registration is complete.</p>
+
+        <div class="auth-tabs"><button id="authLoginTab">Sign in</button><button class="active" id="authSignupTab">Create account</button></div>
+
+        <div id="loginForm">
+          <div class="field"><label>Username</label><input id="loginUser" autocomplete="username" placeholder="your username"></div><div id="savedAccounts" class="saved-accounts" style="display:none"></div>
+          <div class="field"><label>Password</label><input id="loginPass" type="password" autocomplete="current-password" placeholder="your password"></div>
+          <label class="check-row"><input id="rememberLogin" type="checkbox" checked> <span>Remember me on this device</span></label>
+          <div class="auth-msg" id="loginMsg"></div><button class="btn accent auth-primary" id="loginGo">Sign in</button>
+          <div class="auth-foot">Login credentials are stored in encrypted form on this device only when Remember me is enabled.</div>
+        </div>
+
+        <div id="signupForm" style="display:none">
+          <div id="signupStep1">
+            <div class="step-pill"><span>1</span> Verify Gmail</div>
+            <div class="field"><label>Gmail</label><input id="signupGmail" type="email" autocomplete="email" placeholder="name@gmail.com"></div>
+            <div class="verify-row"><button class="btn accent auth-primary" id="sendCodeBtn">Send verification code</button><span id="codeTimer" class="timer"></span></div>
+            <div class="auth-msg" id="signupMsg"></div>
+            <div id="emailSendStatus" class="email-send-status" style="display:none"></div>
+            <div id="verifyBox" style="display:none">
+              <div class="field"><label>Verification code</label><input id="verifyCode" inputmode="numeric" maxlength="6" placeholder="6-digit code"></div>
+              <button class="btn accent auth-primary" id="verifyCodeBtn">Verify Gmail</button>
+              <div class="auth-foot">The code is emailed to the Gmail address you entered. It expires in 10 minutes and allows 5 attempts. A verification code will be sent to the Gmail address you enter.</div>
+            </div>
+          </div>
+
+          <div id="signupStep2" style="display:none">
+            <div class="step-pill"><span>2</span> Create account</div>
+            <div class="verified-pill">✓ Gmail verified: <b id="verifiedMail"></b></div>
+            <div class="field"><label>Username</label><input id="signupUser" autocomplete="username" placeholder="3–20 letters, numbers or _"></div>
+            <div class="field password-field"><label>Password</label><input id="signupPass" type="password" autocomplete="new-password" placeholder="minimum 6 characters"><button class="password-toggle" id="signupPassToggle" type="button">Show</button></div>
+            <label class="check-row"><input id="rememberSignup" type="checkbox" checked> <span>Remember me on this device</span></label>
+            <div class="auth-msg" id="signupMsg2"></div><button class="btn accent auth-primary" id="createAccountBtn">Create account</button>
+            <div class="auth-foot">Your username and progress are saved for this browser. Remembered login credentials are encrypted locally on this device.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-account">
+      <div class="account">
+        <div class="account-grid">
+          <div class="account-card"><div class="eyebrow">My Account</div><h2 id="acctUser">Guest</h2>
+            <div class="profile-row"><span>Gmail</span><span><b id="acctMail">Not signed in</b> <button class="btn" id="mailToggle" style="padding:5px 8px;font-size:10px;margin-left:6px;display:none">Show</button></span></div>
+            <div class="profile-row"><span>Account status</span><b id="acctStatus">Guest</b></div>
+            <div class="profile-row"><span>Progress</span><b id="acctProgress">0 / 50</b></div>
+            <div class="profile-row"><span>Rate</span><b id="acctRate">0</b></div>
+          </div>
+          <div class="account-card"><h3>Problem Progress</h3><div class="metric"><strong id="metricSolved">0</strong><small>unique solved</small></div><div class="progress"><i id="acctBar"></i></div><div style="margin-top:15px;color:#858e9a;font-size:10px;line-height:1.7">A problem is counted once after an Accepted submission in this browser version.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-problems">
+      <div class="list-wrap"><div class="container">
+        <div class="list-head"><div><h1>Problems</h1><p>50 problems • Level 1 • ratings follow the specified bands</p></div><div class="list-tools"><input id="problemSearch" placeholder="Search problems..."><select id="difficultyFilter"><option value="all">All difficulty</option><option value="very-easy">Very Easy</option><option value="easy">Easy</option></select><select id="statusFilter"><option value="all">All status</option><option value="solved">Solved</option><option value="unsolved">Unsolved</option></select></div></div>
+        <div class="problem-table" id="problemTable"></div>
+      </div></div>
+    </section>
+
+    <section class="view" id="view-workspace">
+      <div class="workspace">
+        <section class="workspace-left">
+          <div class="ws-tabs"><span class="ws-tab active" data-wstab="description">Description</span><span class="ws-tab" data-wstab="editorial">Editorial</span><span class="ws-tab" data-wstab="solutions">Solutions</span><span class="ws-tab" data-wstab="submissions">Submissions</span></div>
+          <div class="problem-scroll" id="problemPane"></div>
+        </section>
+        <section class="workspace-right">
+          <div class="editor-top"><span class="pybadge">▣</span><span class="editor-title">Python 3</span><span class="editor-sub">• Monaco Editor</span><div class="editor-tools"><button class="mini" id="formatBtn" title="Format">{}</button><button class="mini" id="clearBtn" title="Clear">↶</button><button class="mini" id="backProblems" title="Back">×</button></div></div>
+          <div class="editor-wrap"><div id="editor" style="width:100%;height:100%"></div></div>
+          <div class="results"><div class="result-tabs"><span class="result-tab active">Testcase</span><span class="result-tab">Test Result</span></div><div class="result-content" id="resultContent"><div class="empty">Run your code to see the test result.</div></div></div>
+        </section>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const PROBLEMS = [{"num":1,"title":"Simple Calculator","diff":"Easy","skill":"Input • Calculation • Output","statement":"Two integers A and B are given. Print their sum, difference, product, integer-division quotient, and remainder.","input":"First A, then B.","output":"Print five results, one per line.","conditions":"B is not zero.","sample_in":"20\n6","sample_out":"26\n14\n120\n3\n2","bangla":"দুটি integer দেওয়া আছে। তোমাকে এই দুই সংখ্যার উপর পাঁচটি basic calculation করতে হবে: যোগ, বিয়োগ, গুণ, integer division-এর quotient, এবং remainder। শেষে পাঁচটি result আলাদা লাইনে print করতে হবে।","tests":[["20\n6","26\n14\n120\n3\n2"],["7\n3","10\n4\n21\n2\n1"],["-8\n3","-5\n-11\n-24\n-3\n1"]],"default":""},{"num":2,"title":"Age Converter","diff":"Easy","skill":"Arithmetic Decomposition","statement":"A person’s age is given in years. Assume 1 year = 365 days and 1 day = 24 hours. Convert the age to years, total days, and total hours.","input":"One integer age.","output":"Print the three results on separate lines.","conditions":"Age is positive.","sample_in":"20","sample_out":"20\n7300\n175200","bangla":"Age বছর হিসেবে দেওয়া হবে। একই age-কে years, মোট days, এবং মোট hours হিসেবে প্রকাশ করতে হবে। এখানে leap year ধরা হবে না; ১ বছর সবসময় ৩৬৫ দিন।","tests":[["1","1\n365\n8760"],["20","20\n7300\n175200"],["50","50\n18250\n438000"]],"default":""},{"num":3,"title":"Number Classification","diff":"Easy","skill":"Basic Decision Making","statement":"Given an integer, determine whether it is Positive, Negative, or Zero.","input":"One integer.","output":"Print Positive, Negative, or Zero.","conditions":"Any integer is allowed.","sample_in":"-15","sample_out":"Negative","bangla":"একটি সংখ্যা দেখে তার sign নির্ধারণ করতে হবে। শূন্যের চেয়ে বড় হলে Positive, ছোট হলে Negative, আর ঠিক 0 হলে Zero।","tests":[["-15","Negative"],["0","Zero"],["27","Positive"]],"default":""},{"num":4,"title":"Even or Odd","diff":"Easy","skill":"Modulo • Condition","statement":"Given an integer, print Even if it is even; otherwise print Odd.","input":"One integer.","output":"Print Even or Odd.","conditions":"Any integer.","sample_in":"17","sample_out":"Odd","bangla":"সংখ্যাটি ২ দিয়ে নিঃশেষে ভাগ হয় কি না সেটাই দেখতে হবে। ভাগ হলে Even, না হলে Odd।","tests":[["17","Odd"],["20","Even"],["-8","Even"]],"default":""},{"num":5,"title":"Largest of Three","diff":"Easy","skill":"Multiple Comparisons","statement":"Given three integers, print the largest value among them.","input":"Three integers.","output":"Print the largest number.","conditions":"Values may be equal.","sample_in":"15\n25\n20","sample_out":"25","bangla":"তিনটি সংখ্যার মধ্যে কোনটি সবচেয়ে বড় সেটি বের করতে হবে। কিছু সংখ্যা equal হলেও largest নির্ধারণ করতে হবে।","tests":[["15\n25\n20","25"],["7\n7\n7","7"],["-3\n-8\n-1","-1"]],"default":""},{"num":6,"title":"Student Result","diff":"Easy","skill":"AND • Conditions","statement":"Three marks are given for a student. The student passes only if every subject mark is at least 40.","input":"Three marks.","output":"Print Pass or Fail.","conditions":"Each mark is between 0 and 100.","sample_in":"55\n72\n48","sample_out":"Pass","bangla":"এখানে তিনটি subject-এর প্রত্যেকটিতে minimum 40 লাগবে। একটি subject-এও 40-এর নিচে হলে পুরো result Fail হবে; সবগুলো 40 বা তার বেশি হলে Pass।","tests":[["55\n72\n48","Pass"],["40\n40\n40","Pass"],["40\n39\n90","Fail"]],"default":""},{"num":7,"title":"Electricity Bill","diff":"Easy","skill":"Piecewise Logic","statement":"Given the number of electricity units used, calculate the bill: the first 100 units cost 5 per unit, the next 100 units cost 7 per unit, and any units above 200 cost 10 per unit.","input":"One integer unit count.","output":"Print the total bill.","conditions":"Units may be zero or positive.","sample_in":"250","sample_out":"1700","bangla":"Unit অনুযায়ী bill তিনটি অংশে ভাগ হবে। প্রথম 100 unit-এর rate একরকম, পরের 100-এর rate আরেকরকম, আর 200-এর বেশি অংশের rate আলাদা। কোন অংশে কত unit পড়ছে সেটা ঠিকভাবে হিসাব করতে হবে। Statement-এর rate অনুসরণ করেই judge করা হবে।","tests":[["0","0"],["50","250"],["100","500"],["250","1700"]],"default":""},{"num":8,"title":"Time Conversion","diff":"Easy","skill":"// • %","statement":"Given a total number of seconds, convert it into hours, minutes, and seconds.","input":"One non-negative integer total_seconds.","output":"Print hours, minutes, and seconds on separate lines.","conditions":"Total seconds is non-negative.","sample_in":"7384","sample_out":"2\n3\n4","bangla":"একটি total seconds-কে তিনটি অংশে ভাঙতে হবে: মোট কত ঘণ্টা, তারপর বাকি অংশে কত মিনিট, তারপর অবশিষ্ট কত seconds।","tests":[["7384","2\n3\n4"],["0","0\n0\n0"],["3661","1\n1\n1"]],"default":""},{"num":9,"title":"Triangle Validity","diff":"Easy","skill":"Condition Design","statement":"Given three positive side lengths, determine whether they can form a valid triangle.","input":"Three positive numbers.","output":"Print Valid or Invalid.","conditions":"The sum of any two sides must be greater than the third side.","sample_in":"3\n4\n5","sample_out":"Valid","bangla":"তিনটি side দিয়ে সত্যিই triangle বানানো যাবে কি না সেটা নির্ধারণ করতে হবে। Triangle inequality অনুযায়ী যেকোনো দুই side-এর যোগফল তৃতীয় side-এর চেয়ে বড় হতে হবে।","tests":[["3\n4\n5","Valid"],["1\n2\n3","Invalid"],["5\n5\n8","Valid"]],"default":""},{"num":10,"title":"Login System","diff":"Easy","skill":"AND • String Comparison","statement":"Read a username and a password. Print Login Successful only when the username is admin and the password is 1234; otherwise print Login Failed.","input":"Username, then password.","output":"Print Login Successful or Login Failed.","conditions":"Both conditions must be true.","sample_in":"admin\n1234","sample_out":"Login Successful","bangla":"এখানে একই সঙ্গে username এবং password—দুইটি condition মিলতে হবে। username ঠিক হলেও password ভুল হলে login fail হবে।","tests":[["admin\n1234","Login Successful"],["admin\n9999","Login Failed"],["user\n1234","Login Failed"]],"default":""},{"num":11,"title":"Sum from 1 to N","diff":"Easy","skill":"for • Accumulator","statement":"Given a positive integer N, compute the sum of all integers from 1 through N.","input":"One positive integer N.","output":"Print the sum.","conditions":"N is positive.","sample_in":"10","sample_out":"55","bangla":"1 থেকে N পর্যন্ত প্রতিটি integer নিতে হবে এবং সবগুলো যোগ করে final sum বের করতে হবে।","tests":[["10","55"],["1","1"],["100","5050"]],"default":""},{"num":12,"title":"Count Even and Odd","diff":"Easy","skill":"Loop • Counting","statement":"Given N integers, count how many are even and how many are odd.","input":"First N, then N integers.","output":"Print the even count and odd count.","conditions":"N is positive.","sample_in":"7\n2\n5\n8\n11\n14\n20\n7","sample_out":"4\n3","bangla":"Nটি সংখ্যার প্রতিটি দেখে সেটি even না odd তা classify করতে হবে। দুইটি আলাদা counter রেখে শেষ পর্যন্ত even count এবং odd count দিতে হবে।","tests":[["7\n2\n5\n8\n11\n14\n20\n7","4\n3"],["4\n1\n3\n5\n7","0\n4"],["5\n2\n4\n6\n8\n10","5\n0"]],"default":""},{"num":13,"title":"Sum of Multiples of 3","diff":"Easy","skill":"Loop • %","statement":"Compute the sum of all numbers from 1 to N that are divisible by 3.","input":"One positive integer N.","output":"Print the required sum.","conditions":"N is positive.","sample_in":"15","sample_out":"45","bangla":"1 থেকে N পর্যন্ত যেসব সংখ্যাকে 3 দিয়ে নিঃশেষে ভাগ করা যায়, শুধু সেগুলোর sum বের করতে হবে।","tests":[["15","45"],["2","0"],["10","18"]],"default":""},{"num":14,"title":"Digit Sum","diff":"Easy","skill":"while • // • %","statement":"Given a positive integer, compute the sum of all its digits.","input":"One positive integer.","output":"Print the digit sum.","conditions":"N is positive.","sample_in":"5832","sample_out":"18","bangla":"একটি সংখ্যার ভেতরের প্রতিটি digit আলাদা করে নিতে হবে এবং সব digit যোগ করতে হবে। পুরো সংখ্যাটি নয়, digit-গুলোই sum হবে।","tests":[["5832","18"],["9","9"],["10005","6"]],"default":""},{"num":15,"title":"Reverse a Number","diff":"Easy","skill":"while • Arithmetic","statement":"Given a positive integer, print its digits in reverse order as the reversed number.","input":"One positive integer.","output":"Print the reversed number.","conditions":"N is positive.","sample_in":"12345","sample_out":"54321","bangla":"সংখ্যাটির শেষ digit থেকে শুরু করে উল্টো ক্রমে নতুন সংখ্যা তৈরি করতে হবে।","tests":[["12345","54321"],["1200","21"],["7","7"]],"default":""},{"num":16,"title":"Count Digits","diff":"Easy","skill":"while • Counting","statement":"Given a positive integer, count how many digits it contains.","input":"One positive integer.","output":"Print the digit count.","conditions":"N is positive.","sample_in":"90876","sample_out":"5","bangla":"সংখ্যাটিতে মোট কয়টি digit আছে সেটা গুনতে হবে।","tests":[["90876","5"],["7","1"],["100000","6"]],"default":""},{"num":17,"title":"First Multiple of 7","diff":"Easy","skill":"for • break","statement":"Search from 1 through N and print the first number divisible by 7. Stop searching after finding it. Print -1 if none exists.","input":"One positive integer N.","output":"Print the first divisible number or -1.","conditions":"N is positive.","sample_in":"20","sample_out":"7","bangla":"1 থেকে N পর্যন্ত left-to-right search করতে হবে। প্রথম যে সংখ্যা 7 দিয়ে ভাগ যায় সেটিই answer; পাওয়া গেলে আর সামনে যেতে হবে না।","tests":[["20","7"],["6","-1"],["14","7"]],"default":""},{"num":18,"title":"Skip Multiples of 5","diff":"Easy","skill":"continue • Accumulator","statement":"Compute the sum of all numbers from 1 through N except numbers divisible by 5.","input":"One positive integer N.","output":"Print the sum.","conditions":"N is positive.","sample_in":"10","sample_out":"40","bangla":"1 থেকে N পর্যন্ত সব number বিবেচনা করতে হবে, কিন্তু যেগুলো 5-এর multiple সেগুলো sum-এ যাবে না। বাকিগুলো যোগ হবে।","tests":[["10","40"],["5","10"],["1","1"]],"default":""},{"num":19,"title":"Number of Divisors","diff":"Easy","skill":"Loop • Condition","statement":"Given a positive integer N, count how many positive divisors divide N exactly.","input":"One positive integer.","output":"Print the number of divisors.","conditions":"N is positive.","sample_in":"12","sample_out":"6","bangla":"যে positive integer-গুলো দিয়ে N-কে ভাগ করলে remainder 0 হয়, সেই divisor-এর সংখ্যা গুনতে হবে।","tests":[["12","6"],["1","1"],["16","5"]],"default":""},{"num":20,"title":"Running Sum","diff":"Easy","skill":"Accumulator • State","statement":"Given N integers, after reading each new number, output the cumulative sum of all values seen so far.","input":"First N, then N integers.","output":"Print one running sum per step.","conditions":"N is positive.","sample_in":"5\n2\n4\n3\n6\n1","sample_out":"2\n6\n9\n15\n16","bangla":"প্রতিটি নতুন number আসার সঙ্গে সঙ্গে এখন পর্যন্ত পাওয়া সব সংখ্যার total কত হয়েছে সেটি output করতে হবে। অর্থাৎ প্রতিটি step-এর cumulative sum দরকার।","tests":[["5\n2\n4\n3\n6\n1","2\n6\n9\n15\n16"],["3\n10\n-2\n5","10\n8\n13"]],"default":""},{"num":21,"title":"Count Vowels","diff":"Easy","skill":"String • Loop • Condition","statement":"Given a string, count the total number of vowels a, e, i, o, u. Uppercase vowels also count.","input":"One string of English letters.","output":"Print the vowel count.","conditions":"Work with English letters.","sample_in":"Education","sample_out":"5","bangla":"String-এর প্রতিটি character দেখে a, e, i, o, u-এর কোনোটি কি না তা count করতে হবে। Uppercase vowel-ও count হবে।","tests":[["Education","5"],["hello","2"],["AEIOU","5"]],"default":""},{"num":22,"title":"Character Frequency","diff":"Easy","skill":"String • Counting","statement":"Given a string and a target character, count how many times the target character occurs in the string.","input":"First the string, then the target character.","output":"Print the frequency.","conditions":"Target is one character.","sample_in":"banana\na","sample_out":"3","bangla":"একটি নির্দিষ্ট target character string-এর মধ্যে মোট কতবার এসেছে সেটাই বের করতে হবে।","tests":[["banana\na","3"],["mississippi\ns","4"],["hello\nz","0"]],"default":""},{"num":23,"title":"Reverse String","diff":"Easy","skill":"String Indexing • Loop","statement":"Given a string, construct and print its reverse using a loop and string indexing.","input":"One non-empty string.","output":"Print the reversed string.","conditions":"String is not empty.","sample_in":"programming","sample_out":"gnimmargorp","bangla":"String-এর শেষ character থেকে প্রথম character পর্যন্ত উল্টো order-এ একটি নতুন string তৈরি করতে হবে।","tests":[["programming","gnimmargorp"],["abc","cba"],["python","nohtyp"]],"default":""},{"num":24,"title":"Palindrome Checker","diff":"Easy","skill":"Slicing • Comparison","statement":"If a string reads the same forward and backward, print Palindrome; otherwise print Not Palindrome.","input":"One string.","output":"Print Palindrome or Not Palindrome.","conditions":"Comparison is case-sensitive.","sample_in":"madam","sample_out":"Palindrome","bangla":"String সামনে থেকে পড়লেও এবং পেছন থেকে পড়লেও একই কি না সেটা যাচাই করতে হবে। একই হলে Palindrome, না হলে Not Palindrome।","tests":[["madam","Palindrome"],["python","Not Palindrome"],["aba","Palindrome"]],"default":""},{"num":25,"title":"Longest Word Length","diff":"Easy","skill":"List/String • Loop","statement":"Given N words, print the length of the longest word.","input":"First N, then N words.","output":"Print the longest length.","conditions":"At least one word is given.","sample_in":"5\napple\ncomputer\ncat\nelephant\nsun","sample_out":"8","bangla":"সব word-এর length compare করে সবচেয়ে বড় length-টা বের করতে হবে। word নিজে output নয়, তার length output হবে।","tests":[["5\napple\ncomputer\ncat\nelephant\nsun","8"],["3\na\nbb\nccc","3"]],"default":""},{"num":26,"title":"Maximum Without max()","diff":"Easy","skill":"Manual Max Search","statement":"Given a list of integers, find the maximum value without using Python’s built-in max().","input":"First N, then N integers.","output":"Print the maximum value.","conditions":"N is positive.","sample_in":"6\n15\n3\n29\n11\n8\n22","sample_out":"29","bangla":"List-এর সবচেয়ে বড় value বের করতে হবে, কিন্তু built-in max() ব্যবহার করা যাবে না। নিজে compare করে maximum ধরে রাখতে হবে।","tests":[["6\n15\n3\n29\n11\n8\n22","29"],["4\n-2\n-9\n-1\n-7","-1"]],"default":""},{"num":27,"title":"Minimum Without min()","diff":"Easy","skill":"Manual Min Search","statement":"Given a list of integers, find the minimum value without using Python’s built-in min().","input":"First N, then N integers.","output":"Print the minimum value.","conditions":"N is positive.","sample_in":"6\n18\n5\n22\n9\n3\n14","sample_out":"3","bangla":"List-এর সবচেয়ে ছোট value বের করতে হবে, কিন্তু min() ব্যবহার করা যাবে না। নিজে comparison করে minimum বের করতে হবে।","tests":[["6\n18\n5\n22\n9\n3\n14","3"],["4\n-2\n-9\n-1\n-7","-9"]],"default":""},{"num":28,"title":"Remove a Value","diff":"Easy","skill":"List Modification","statement":"Given a list and a target value, remove every occurrence of the target while preserving the original order of the remaining values.","input":"First N, then N integers, then target.","output":"Print the updated list values separated by spaces.","conditions":"Target may or may not occur.","sample_in":"7\n4\n2\n4\n7\n4\n9\n4\n4","sample_out":"2 7 9","bangla":"Target value যেখানে যেখানে আছে সব occurrence বাদ দিতে হবে। যেগুলো থাকবে, তাদের original order একদম আগের মতো রাখতে হবে।","tests":[["7\n4\n2\n4\n7\n4\n9\n4\n4","2 7 9"],["4\n1\n2\n3\n4\n9","1 2 3 4"],["3\n5\n5\n5\n5",""]],"default":""},{"num":29,"title":"Second Largest","diff":"Easy","skill":"List • Comparison","statement":"Given a list containing at least two different values, print the second largest distinct value.","input":"First N, then N integers.","output":"Print the second largest value.","conditions":"At least two distinct values exist.","sample_in":"6\n10\n25\n7\n19\n30\n14","sample_out":"25","bangla":"এখানে দ্বিতীয় largest বলতে দ্বিতীয় largest distinct value বোঝানো হয়েছে। সবচেয়ে বড় value-এর পরে যে আলাদা value সবচেয়ে বড়, সেটি answer।","tests":[["6\n10\n25\n7\n19\n30\n14","25"],["5\n5\n5\n4\n4\n3","4"],["4\n-1\n-3\n-2\n-4","-2"]],"default":""},{"num":30,"title":"Rotate List","diff":"Easy","skill":"List Slicing • Decomposition","statement":"Given a list and an integer K, rotate the list to the right by K positions.","input":"First N, then N integers, then K.","output":"Print the rotated list values separated by spaces.","conditions":"K is non-negative and may be larger than the list length.","sample_in":"5\n1\n2\n3\n4\n5\n2","sample_out":"4 5 1 2 3","bangla":"List-এর শেষ দিকের Kটি position সামনে চলে আসবে এবং বাকিগুলো তাদের পরে থাকবে। K list length-এর চেয়ে বড়ও হতে পারে।","tests":[["5\n1\n2\n3\n4\n5\n2","4 5 1 2 3"],["4\n1\n2\n3\n4\n0","1 2 3 4"],["4\n1\n2\n3\n4\n6","3 4 1 2"]],"default":""},{"num":31,"title":"Grade Function","diff":"Easy","skill":"Function • return • condition","statement":"Create a function that receives three subject marks and returns a grade based on the average: 80+ = A, 70–79 = B, 60–69 = C, 50–59 = D, below 50 = F.","input":"Three marks.","output":"Print the returned grade.","conditions":"Marks are from 0 to 100.","sample_in":"75\n80\n70","sample_out":"B","bangla":"তিনটি marks থেকে average বের করে সেটাকে grade range-এর সঙ্গে মিলাতে হবে। Function ব্যবহার করে grade return করতে হবে।","tests":[["75\n80\n70","B"],["90\n90\n90","A"],["50\n50\n50","D"],["49\n50\n49","F"]],"default":""},{"num":32,"title":"Count Positive Numbers Using Function","diff":"Easy","skill":"Function • List","statement":"Create a function that receives a list and returns how many positive numbers it contains. Zero is not positive.","input":"First N, then N integers.","output":"Print the positive count.","conditions":"Zero is not counted as positive.","sample_in":"6\n5\n-2\n8\n0\n-7\n11","sample_out":"3","bangla":"List-এর প্রতিটি number দেখে 0-এর চেয়ে বড় কি না count করতে হবে। 0 এবং negative—দুটিই positive count-এর বাইরে থাকবে।","tests":[["6\n5\n-2\n8\n0\n-7\n11","3"],["4\n0\n0\n1\n-1","1"]],"default":""},{"num":33,"title":"Number Frequency","diff":"Easy","skill":"Dictionary • Frequency Counting","statement":"Given a list, count how many times each number occurs using a dictionary. Output each unique number and its frequency in first-appearance order.","input":"First N, then N integers.","output":"Print each unique number and its frequency in the form: number : frequency, one per line.","conditions":"Preserve first-appearance order when outputting numbers.","sample_in":"7\n2\n3\n2\n5\n3\n2\n7","sample_out":"2 : 3\n3 : 2\n5 : 1\n7 : 1","bangla":"প্রতিটি number কতবার এসেছে সেটা dictionary-তে track করতে হবে। Output-এর order হবে যে number প্রথমবার যেভাবে এসেছে সেই order।","tests":[["7\n2\n3\n2\n5\n3\n2\n7","2 : 3\n3 : 2\n5 : 1\n7 : 1"],["4\n1\n1\n1\n2","1 : 3\n2 : 1"]],"default":""},{"num":34,"title":"Most Frequent Number","diff":"Easy","skill":"Frequency • Tie Handling","statement":"Given a list, print the number that occurs most often. If several numbers tie for the highest frequency, print the smaller number.","input":"First N, then N integers.","output":"Print the most frequent number.","conditions":"At least one element is given.","sample_in":"8\n4\n2\n4\n7\n2\n4\n7\n2","sample_out":"2","bangla":"প্রথমে frequency নির্ধারণ করতে হবে। সবচেয়ে বেশি frequency যার, সে answer। যদি সর্বোচ্চ frequency একাধিক number-এর হয়, তাদের মধ্যে ছোট number নিতে হবে।","tests":[["8\n4\n2\n4\n7\n2\n4\n7\n2","2"],["6\n5\n1\n5\n1\n7\n7","1"]],"default":""},{"num":35,"title":"Unique Elements in Original Order","diff":"Easy","skill":"Set • List","statement":"Given a list, remove duplicates and print the unique values while preserving their first-appearance order.","input":"First N, then N integers.","output":"Print unique values separated by spaces.","conditions":"Keep the order of first appearance.","sample_in":"7\n4\n2\n4\n7\n2\n9\n7","sample_out":"4 2 7 9","bangla":"Duplicate বাদ দিতে হবে, কিন্তু sorted করতে হবে না। প্রতিটি value প্রথম যেই position-এ এসেছে সেই order-এ unique list তৈরি হবে।","tests":[["7\n4\n2\n4\n7\n2\n9\n7","4 2 7 9"],["5\n1\n2\n3\n2\n1","1 2 3"]],"default":""},{"num":36,"title":"Common Elements","diff":"Easy","skill":"Set Intersection","statement":"Given two lists, print the distinct elements that appear in both lists. Do not print duplicates.","input":"First list size and values, then second list size and values.","output":"Print common unique values.","conditions":"Do not repeat a value in the output.","sample_in":"5\n1\n2\n2\n4\n5\n5\n2\n4\n4\n8\n9","sample_out":"2 4","bangla":"দুই list-এর মধ্যে যে value দুটিতেই আছে, শুধু সেই common value-গুলো নিতে হবে। একই value একটি list-এ একাধিকবার থাকলেও output-এ duplicate যাবে না।","tests":[["5\n1\n2\n2\n4\n5\n5\n2\n4\n4\n8\n9","2 4"],["3\n1\n2\n3\n3\n4\n5\n6",""]],"default":""},{"num":37,"title":"Sort Students by Marks","diff":"Easy","skill":"Sorting with key","statement":"Given student names and marks, output the students in descending order of marks. When marks are equal, preserve their input order.","input":"N student records, each containing a name and an integer mark.","output":"Print sorted student records as name and mark on each line.","conditions":"Marks are integers; equal marks keep input order.","sample_in":"4\nRahim 82\nKarim 91\nHasan 75\nNabil 91","sample_out":"Karim 91\nNabil 91\nRahim 82\nHasan 75","bangla":"Student record-গুলো marks অনুযায়ী বড় থেকে ছোট হবে। একই marks হলে তাদের original input order বদলাবে না।","tests":[["4\nRahim 82\nKarim 91\nHasan 75\nNabil 91","Karim 91\nNabil 91\nRahim 82\nHasan 75"],["3\nA 70\nB 70\nC 90","C 90\nA 70\nB 70"]],"default":""},{"num":38,"title":"Find All Positions","diff":"Easy","skill":"Linear Search • List Building","statement":"Given a list and a target number, build a list of every index where the target occurs. If it does not occur, print an empty result.","input":"First N, then N integers, then target.","output":"Print matching indexes in ascending order, separated by spaces.","conditions":"Indexes start from 0.","sample_in":"8\n4\n8\n4\n2\n4\n9\n1\n4\n4","sample_out":"0 2 4 7","bangla":"List-এর index 0 থেকে শুরু করে target কোথায় কোথায় আছে তা খুঁজতে হবে। প্রতিটি matching index output-এ যাবে এবং naturally ascending order থাকবে।","tests":[["8\n4\n8\n4\n2\n4\n9\n1\n4\n4","0 2 4 7"],["3\n1\n2\n3\n9",""]],"default":""},{"num":39,"title":"Dictionary Student Search","diff":"Easy","skill":"Dictionary Lookup • Membership","statement":"Store student names and marks in a dictionary. Then search for one student name. Print the marks if found; otherwise print Not Found.","input":"N name-mark pairs, then a search name.","output":"Print the mark or Not Found.","conditions":"Student names are unique.","sample_in":"3\nRahim 80\nKarim 92\nHasan 75\nKarim","sample_out":"92","bangla":"Name-কে key এবং mark-কে value হিসেবে ধরে dictionary তৈরি করতে হবে। এরপর search name dictionary-তে আছে কি না দেখে result দিতে হবে।","tests":[["3\nRahim 80\nKarim 92\nHasan 75\nKarim","92"],["2\nA 10\nB 20\nC","Not Found"]],"default":""},{"num":40,"title":"Debug the Frequency Counter","diff":"Easy","skill":"Debugging • Dictionary","statement":"The code below is intended to store the frequency of every number in a dictionary, but it contains a logic bug. Fix the bug and provide a test case that exposes the original bug.","input":"Analyze the given code. The reference list is [2, 3, 2, 5, 3, 2].","output":"Your program should print the corrected frequency mapping and be able to demonstrate a failing case for the original logic.","conditions":"Do not use a new concept outside the learned topics.","sample_in":"2 3 2 5 3 2","sample_out":"2 : 3\n3 : 2\n5 : 1","bangla":"এখানে মূল কাজ হলো দেওয়া frequency-counting logic-এর ভুল খুঁজে বের করা। একই number আবার এলে count বাড়ানোর বদলে original code সেটাকে আবার 1 করে দিচ্ছে—এই ধরনের bug শনাক্ত করে corrected frequency output তৈরি করতে হবে।","tests":[["2 3 2 5 3 2","2 : 3\n3 : 2\n5 : 1"]],"default":"numbers = [2, 3, 2, 5, 3, 2]\nfrequency = {}\n\nfor x in numbers:\n    # Fix the frequency logic here\n    pass\n\nfor x in frequency:\n    print(f\"{x} : {frequency[x]}\")"},{"num":41,"title":"Maximum Consecutive Ones","diff":"Easy","skill":"State Tracking","statement":"Given a binary list containing only 0 and 1, find the length of the longest consecutive block of 1s.","input":"First N, then N binary values.","output":"Print the maximum consecutive-1 length.","conditions":"N is positive.","sample_in":"8\n1\n1\n0\n1\n1\n1\n0\n1","sample_out":"3","bangla":"পরপর কতগুলো 1 আছে সেটা track করতে হবে। 0 এলে current streak ভেঙে যাবে, আর সবচেয়ে বড় streak-টাই answer।","tests":[["8\n1\n1\n0\n1\n1\n1\n0\n1","3"],["5\n0\n0\n1\n1\n1","3"],["4\n1\n1\n1\n1","4"]],"default":""},{"num":42,"title":"Valid Parentheses","diff":"Easy","skill":"Stack / Balance Reasoning","statement":"Given a string containing only ( and ), determine whether the sequence is valid. At no point may the closing balance exceed the opening balance, and the final balance must be zero.","input":"One parentheses string.","output":"Print Valid or Invalid.","conditions":"An empty string may be treated as Valid.","sample_in":"(()())","sample_out":"Valid","bangla":"Opening bracket এবং closing bracket-এর balance track করতে হবে। মাঝপথে closing বেশি হয়ে গেলে invalid, আর শেষে balance 0 না হলে invalid।","tests":[["(()())","Valid"],["())","Invalid"],["((())","Invalid"],["\n","Valid"]],"default":""},{"num":43,"title":"Queue Simulation","diff":"Easy","skill":"Queue","statement":"Start with an empty queue. ADD x appends x to the end. REMOVE removes the value at the front. Ignore REMOVE when the queue is empty. Print the final queue.","input":"N operations, one per line.","output":"Print the final queue values separated by spaces.","conditions":"Operations are validly formatted.","sample_in":"5\nADD 10\nADD 20\nADD 30\nREMOVE\nADD 40","sample_out":"20 30 40","bangla":"Queue-তে first-in-first-out order বজায় রাখতে হবে। ADD করলে পিছনে যাবে, REMOVE করলে সামনে থাকা value বের হবে। Empty queue-তে REMOVE করলে কিছুই হবে না।","tests":[["5\nADD 10\nADD 20\nADD 30\nREMOVE\nADD 40","20 30 40"],["4\nREMOVE\nADD 5\nREMOVE\nREMOVE",""]],"default":""},{"num":44,"title":"Recursive Digit Sum","diff":"Easy","skill":"Recursion","statement":"Given a positive integer, compute its digit sum using recursion.","input":"One positive integer.","output":"Print the digit sum.","conditions":"Recursion is required.","sample_in":"5832","sample_out":"18","bangla":"Digit sum-এর কাজটাই করতে হবে, কিন্তু এখানে বিশেষভাবে recursion ব্যবহার করতে হবে। Base case এবং recursive breakdown-এর structure problem-এর অংশ।","tests":[["5832","18"],["9","9"],["1005","6"]],"default":""},{"num":45,"title":"Best Time to Buy and Sell","diff":"Easy","skill":"Greedy Thinking","statement":"Given a list of daily stock prices, choose one day to buy and a later day to sell to maximize profit. If no positive profit is possible, print 0.","input":"First N, then N prices.","output":"Print the maximum profit.","conditions":"The buy day must be before the sell day.","sample_in":"6\n7\n1\n5\n3\n6\n4","sample_out":"5","bangla":"একবার buy এবং পরে sell করতে হবে। Buy আগে, sell পরে—এই rule রেখে সর্বোচ্চ positive difference বের করতে হবে। লাভ না হলে answer 0।","tests":[["6\n7\n1\n5\n3\n6\n4","5"],["5\n7\n6\n4\n3\n1","0"],["5\n1\n2\n3\n4\n5","4"]],"default":""},{"num":46,"title":"Target Frequency Query","diff":"Easy","skill":"Frequency Counting • Dictionary","statement":"Given a list and a target number, use a dictionary to determine how many times the target occurs.","input":"First N, then N integers, then target.","output":"Print the frequency.","conditions":"N is positive.","sample_in":"7\n2\n5\n2\n8\n2\n3\n5\n2","sample_out":"4","bangla":"Target number-টি list-এ মোট কয়বার এসেছে সেটা বের করতে হবে এবং dictionary ব্যবহার করতে হবে।","tests":[["7\n2\n5\n2\n8\n2\n3\n5\n2","4"],["5\n1\n2\n3\n4\n5\n9","0"]],"default":""},{"num":47,"title":"Minimum Length Subarray","diff":"Easy","skill":"Sliding Window","statement":"Given an array of positive integers and a positive K, find the minimum length of a contiguous subarray whose sum is at least K. If no such subarray exists, print 0.","input":"First N, then N positive integers, then K.","output":"Print the minimum length or 0.","conditions":"All values are positive.","sample_in":"6\n2\n3\n1\n2\n4\n3\n7","sample_out":"2","bangla":"Contiguous মানে পাশাপাশি elements-এর continuous অংশ। এমন shortest অংশ খুঁজতে হবে যার sum অন্তত K। কোনো অংশ না মিললে 0।","tests":[["6\n2\n3\n1\n2\n4\n3\n7","2"],["5\n1\n1\n1\n1\n1\n10","0"],["5\n2\n3\n1\n2\n4\n5","2"]],"default":""},{"num":48,"title":"First Repeated Number","diff":"Easy","skill":"Set • Search","statement":"Scan the list from left to right. Print the first number that is encountered for the second time. Print -1 if there is no duplicate.","input":"First N, then N integers.","output":"Print the first repeated number or -1.","conditions":"The first repeat is defined by left-to-right scan order.","sample_in":"6\n2\n5\n1\n7\n5\n3","sample_out":"5","bangla":"Left-to-right scan করতে হবে। যে number-কে দ্বিতীয়বার প্রথম দেখা যাবে, সেটিই answer। অন্য duplicate পরে থাকলেও তা আর দরকার নেই।","tests":[["6\n2\n5\n1\n7\n5\n3","5"],["4\n1\n2\n3\n4","-1"],["5\n1\n2\n1\n2\n3","1"]],"default":""},{"num":49,"title":"Minimum Coins","diff":"Easy+","skill":"Dynamic Programming","statement":"Given coin denominations and a target amount, use an unlimited number of coins to form the target with the minimum number of coins. Print -1 if it is impossible.","input":"First coin count and coin values, then the target.","output":"Print the minimum number of coins or -1.","conditions":"Coin values are positive; target is non-negative.","sample_in":"3\n1\n3\n4\n6","sample_out":"2","bangla":"একই denomination-এর coin unlimited বার ব্যবহার করা যাবে। Target amount বানানোর possible combinations-এর মধ্যে সবচেয়ে কম coin লাগবে কতটি, সেটাই answer; impossible হলে -1।","tests":[["3\n1\n3\n4\n6","2"],["2\n2\n5\n3","2"],["2\n4\n6\n3","-1"]],"default":""},{"num":50,"title":"Technique Recognition Challenge","diff":"Easy+","skill":"Technique Recognition • Binary Search","statement":"Given a sorted integer list and a target T, count how many elements are less than or equal to T. Duplicates may exist. The list can be large, so think about an efficient algorithm and choose the technique yourself.","input":"First N, then N sorted integers, then T.","output":"Print the count of elements <= T.","conditions":"Use the sorted order to avoid unnecessary full traversal when possible.","sample_in":"8\n2\n3\n3\n5\n7\n7\n9\n12\n7","sample_out":"6","bangla":"Sorted list-এর মধ্যে T-এর চেয়ে ছোট বা সমান কয়টি element আছে সেটা count করতে হবে। Duplicate থাকলেও প্রতিটি element count হবে। Problem-এ efficiency গুরুত্বপূর্ণ।","tests":[["8\n2\n3\n3\n5\n7\n7\n9\n12\n7","6"],["5\n1\n2\n3\n4\n5\n0","0"],["6\n1\n2\n2\n2\n5\n9\n2","4"]],"default":""}];
+const state={index:0,codes:{},solved:{},history:{},guest:true};
+let USER=null,realMail='',mailShown=false,editor=null,pyodide=null,pyodidePromise=null,currentWsTab='description';
+const $=id=>document.getElementById(id);
+const rateOf=n=>300+50*Math.floor((n-1)/10);
+const diffOf=n=>n<=10?'Very Easy':'Easy';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const key=()=>USER?`py50_v5_${USER}`:'py50_guest_v5';
+function loadState(){const base={index:0,codes:{},solved:{},history:{},guest:!USER};try{Object.assign(base,JSON.parse(localStorage.getItem(key())||'{}'))}catch(e){};state.index=base.index||0;state.codes=base.codes||{};state.solved=base.solved||{};state.history=base.history||{};state.guest=!USER}
+function save(){try{localStorage.setItem(key(),JSON.stringify({index:state.index,codes:state.codes,solved:state.solved,history:state.history,guest:!USER}))}catch(e){}}
+function users(){try{return JSON.parse(localStorage.getItem('py50_users_v5')||'{}')}catch(e){return{}}}
+function saveUsers(v){localStorage.setItem('py50_users_v5',JSON.stringify(v))}
+function toast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.__t);window.__t=setTimeout(()=>t.style.display='none',2500)}
+function solvedCount(){return Object.values(state.solved).filter(Boolean).length}
+function userRate(){return Object.keys(state.solved).filter(i=>state.solved[i]).reduce((a,i)=>a+(PROBLEMS[+i]?rateOf(PROBLEMS[+i].num):0),0)}
+function updateTop(){$('topSolved').textContent=`${solvedCount()} / ${PROBLEMS.length} solved`; $('homeRate').textContent=userRate().toLocaleString(); const pct=solvedCount()/PROBLEMS.length*100; $('homeProgress').textContent=Math.round(pct)+'%'; $('homeBar').style.width=pct+'%'; renderAccount()}
+function lockApp(){document.querySelector('.app').classList.add('auth-required')}
+function unlockApp(){document.querySelector('.app').classList.remove('auth-required')}
+function setView(name){
+  if(!USER && name!=='auth'){name='auth';tabAuth(false);lockApp()}
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('view-'+name).classList.add('active');
+  document.querySelectorAll('.navbtn[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  if(name==='problems')renderProblemList();
+  if(name==='account')renderAccount();
+}
+document.querySelectorAll('.navbtn[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+$('topProblems').onclick=()=>setView('problems');
+$('heroStart').onclick=()=>setView('problems');
+
+$('mobileNav').onclick=()=>toast('Navigation is available from the sidebar.');
+function openAuth(startSignup=true){setView('auth');tabAuth(!startSignup);lockApp()}
+function closeAuth(){if(USER){unlockApp();setView('home')}}
+$('authBtn').onclick=()=>USER?logout():openAuth(true);
+function tabAuth(login){$('authLoginTab').classList.toggle('active',login);$('authSignupTab').classList.toggle('active',!login);$('loginForm').style.display=login?'':'none';$('signupForm').style.display=login?'none':'';$('authTitle').textContent=login?'Sign in to Py50':'Create your Py50 account';$('authSubtitle').textContent=login?'Continue your saved problem-solving progress.':'Create your account first, then enter the Py50 learning interface.'}
+$('authLoginTab').onclick=()=>tabAuth(true);$('authSignupTab').onclick=()=>tabAuth(false);
+$('signupPassToggle').onclick=()=>{const i=$('signupPass');const show=i.type==='password';i.type=show?'text':'password';$('signupPassToggle').textContent=show?'Hide':'Show'};
+/* ===== Saved sign-in credentials (encrypted locally for this standalone HTML) ===== */
+const VAULT_KEY='py50_credential_vault_v2';
+const VAULT_DATA='py50_saved_logins_v2';
+function b64bytes(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s)}
+function fromB64(s){const raw=atob(s);return Uint8Array.from(raw,c=>c.charCodeAt(0))}
+async function getVaultKey(){
+  let raw=localStorage.getItem(VAULT_KEY);
+  if(!raw){const a=crypto.getRandomValues(new Uint8Array(32));raw=b64bytes(a);localStorage.setItem(VAULT_KEY,raw)}
+  return crypto.subtle.importKey('raw',fromB64(raw),{name:'AES-GCM'},false,['encrypt','decrypt']);
+}
+async function saveRememberedCredential(username,password){
+  try{
+    const key=await getVaultKey(),iv=crypto.getRandomValues(new Uint8Array(12));
+    const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(password));
+    const all=JSON.parse(localStorage.getItem(VAULT_DATA)||'{}');
+    all[username]={iv:b64bytes(iv),data:b64bytes(new Uint8Array(enc))};
+    localStorage.setItem(VAULT_DATA,JSON.stringify(all));
+  }catch(e){}
+}
+async function removeRememberedCredential(username){
+  try{const all=JSON.parse(localStorage.getItem(VAULT_DATA)||'{}');delete all[username];localStorage.setItem(VAULT_DATA,JSON.stringify(all))}catch(e){}
+}
+async function loadRememberedCredentials(){
+  const result=[];
+  try{
+    const key=await getVaultKey(),all=JSON.parse(localStorage.getItem(VAULT_DATA)||'{}');
+    for(const [username,item] of Object.entries(all)){
+      try{
+        const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(item.iv)},key,fromB64(item.data));
+        result.push({username,password:new TextDecoder().decode(plain)});
+      }catch(e){}
+    }
+  }catch(e){}
+  return result;
+}
+function hideSavedAccounts(){$('savedAccounts').style.display='none';$('savedAccounts').innerHTML=''}
+async function showSavedAccounts(){
+  const box=$('savedAccounts');
+  const creds=await loadRememberedCredentials();
+  if(!creds.length){hideSavedAccounts();return}
+  if(creds.length===1){
+    $('loginUser').value=creds[0].username;
+    $('loginPass').value=creds[0].password;
+    box.style.display='block';
+    box.innerHTML='<button type="button" class="saved-account-pill">✓ Saved account loaded</button>';
+    box.querySelector('button').onclick=hideSavedAccounts;
+    return;
+  }
+  box.innerHTML=creds.map(c=>`<button type="button" class="saved-account-item" data-u="${esc(c.username)}">🔐 ${esc(c.username)}</button>`).join('');
+  box.style.display='grid';
+  box.querySelectorAll('.saved-account-item').forEach(btn=>btn.onclick=()=>{
+    const c=creds.find(x=>x.username===btn.dataset.u);
+    if(c){$('loginUser').value=c.username;$('loginPass').value=c.password;hideSavedAccounts()}
+  });
+}
+$('loginUser').addEventListener('focus',showSavedAccounts);
+$('loginPass').addEventListener('focus',showSavedAccounts);
+
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+let pendingSignup=null, codeCountdown=null, lastEmailSendAt=0;
+function randomCode(){return String(Math.floor(100000+Math.random()*900000))}
+async function hashText(s){return await sha256(String(s))}
+function clearVerifyTimer(){if(codeCountdown){clearInterval(codeCountdown);codeCountdown=null}}
+function startVerifyTimer(){clearVerifyTimer();let left=600;$('codeTimer').textContent='10:00';codeCountdown=setInterval(()=>{left--;const m=String(Math.floor(left/60)).padStart(2,'0'),s=String(left%60).padStart(2,'0');$('codeTimer').textContent=m+':'+s;if(left<=0){clearVerifyTimer();$('codeTimer').textContent='Expired'}},1000)}
+function showSignupStep2(){$('signupStep1').style.display='none';$('signupStep2').style.display='';$('verifiedMail').textContent=pendingSignup.gmail;$('signupMsg').textContent=''}
+$('loginGo').onclick=async()=>{
+  const u=$('loginUser').value.trim().toLowerCase(),p=$('loginPass').value,db=users();
+  $('loginMsg').style.color='var(--red)';$('loginMsg').textContent='';
+  if(!u||!p)return $('loginMsg').textContent='Enter your username and password.';
+  if(!db[u])return $('loginMsg').textContent='Invalid username or password.';
+  if(!db[u].email_verified)return $('loginMsg').textContent='This account is not verified.';
+  if(await sha256(db[u].salt+p)!==db[u].hash)return $('loginMsg').textContent='Invalid username or password.';
+  if($('rememberLogin').checked)await saveRememberedCredential(u,p);else await removeRememberedCredential(u);
+  enterUser(u,db[u].gmail,$('rememberLogin').checked);
+};
+const EMAILJS_CONFIG={
+  publicKey:'BVAow2431jfLiNI2r',
+  serviceId:'service_x88y63h',
+  templateId:'template_c0kfu19'
+};
+let emailjsReady=null;
+async function loadEmailJS(){
+  if(window.emailjs)return window.emailjs;
+  if(emailjsReady)return emailjsReady;
+  emailjsReady=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+    s.onload=()=>{try{window.emailjs.init({publicKey:EMAILJS_CONFIG.publicKey});resolve(window.emailjs)}catch(e){reject(e)}};
+    s.onerror=()=>reject(new Error('Email service could not be loaded.'));
+    document.head.appendChild(s);
+  });
+  return emailjsReady;
+}
+async function sendVerificationEmail(toEmail,code){
+  const ej=await loadEmailJS();
+  const params={
+    to_email:String(toEmail).trim(),
+    verification_code:String(code),
+    app_name:'Py50'
+  };
+  try{
+    const response=await ej.send(EMAILJS_CONFIG.serviceId,EMAILJS_CONFIG.templateId,params);
+    if(!response || response.status!==200){
+      throw new Error(`EmailJS returned ${response?.status||'an unknown status'}: ${response?.text||'Unknown error'}`);
+    }
+    return response;
+  }catch(err){
+    const status=err?.status||err?.response?.status||'';
+    const detail=err?.text||err?.response?.text||err?.message||String(err);
+    const e=new Error(status?`EmailJS error ${status}: ${detail}`:`EmailJS: ${detail}`);
+    e.status=status;
+    throw e;
+  }
+}
+$('sendCodeBtn').onclick=async()=>{
+  if(Date.now()-lastEmailSendAt<2000){ $('signupMsg').textContent='Please wait a moment before requesting another code.'; return; }
+  lastEmailSendAt=Date.now();
+  const g=$('signupGmail').value.trim().toLowerCase();
+  $('signupMsg').style.color='var(--red)';
+  $('signupMsg').textContent='';
+  $('emailSendStatus').style.display='none';
+  $('emailSendStatus').style.color='';$('emailSendStatus').style.borderColor='';$('emailSendStatus').style.background='';
+  if(!/^[a-z0-9._%+-]+@gmail\.com$/.test(g))return $('signupMsg').textContent='Use a valid @gmail.com address.';
+  const db=users();
+  if(Object.values(db).some(x=>x.gmail===g))return $('signupMsg').textContent='That Gmail already has an account.';
+  const code=randomCode();
+  pendingSignup={gmail:g,codeHash:null,expires:Date.now()+600000,attempts:0,verified:false};
+  pendingSignup.codeHash=await hashText(g+'|'+code);
+  $('sendCodeBtn').disabled=true;
+  $('sendCodeBtn').textContent='Sending...';
+  try{
+    await sendVerificationEmail(g,code);
+    $('verifyBox').style.display='';
+    $('verifyCode').value='';
+    $('verifyCode').focus();
+    startVerifyTimer();
+    $('emailSendStatus').style.display='';
+    $('emailSendStatus').textContent=`Verification code sent to ${g}. Check that Gmail inbox (and Spam) and enter the 6-digit code below.`;
+    $('signupMsg').style.color='#86d7ad';
+    $('signupMsg').textContent='Check your Gmail inbox for the verification code.';
+  }catch(e){
+    console.error('Py50 EmailJS verification failed:', e);
+    pendingSignup=null;
+    $('emailSendStatus').style.display='';
+    $('emailSendStatus').style.color='#ffb8bf';
+    $('emailSendStatus').style.borderColor='#5e2d33';
+    $('emailSendStatus').style.background='#241719';
+    $('emailSendStatus').innerHTML=`<strong>Verification email failed.</strong><br>${esc(e.message||'Could not send the verification email.')}<br><span style="opacity:.8">Check EmailJS → Email Services → your Gmail service → Test. In the template, set <strong>To Email</strong> to exactly <code>{{to_email}}</code>, keep <strong>From Email</strong> as the connected/default service address, and make sure the template is saved.</span>`;
+    $('signupMsg').textContent='Verification email was not sent. See the detailed error above.';
+  }finally{
+    $('sendCodeBtn').disabled=false;
+    $('sendCodeBtn').textContent='Resend verification code';
+  }
+};
+
+$('verifyCodeBtn').onclick=async()=>{if(!pendingSignup)return $('signupMsg').textContent='Request a verification code first.';if(Date.now()>pendingSignup.expires)return $('signupMsg').textContent='This verification code has expired. Send a new code.';if(pendingSignup.attempts>=5)return $('signupMsg').textContent='Too many attempts. Send a new code.';const code=$('verifyCode').value.trim();if(!/^\d{6}$/.test(code))return $('signupMsg').textContent='Enter the 6-digit verification code.';pendingSignup.attempts++;const ok=(await hashText(pendingSignup.gmail+'|'+code))===pendingSignup.codeHash;if(!ok)return $('signupMsg').textContent='Incorrect verification code.';pendingSignup.verified=true;clearVerifyTimer();$('signupMsg').style.color='#86d7ad';$('signupMsg').textContent='Gmail verified successfully.';showSignupStep2();$('signupUser').focus()};
+$('createAccountBtn').onclick=async()=>{
+  if(!pendingSignup?.verified)return $('signupMsg2').textContent='Verify your Gmail first.';
+  const u=$('signupUser').value.trim().toLowerCase(),p=$('signupPass').value,db=users();
+  $('signupMsg2').style.color='var(--red)';$('signupMsg2').textContent='';
+  if(!/^[a-z0-9_]{3,20}$/.test(u))return $('signupMsg2').textContent='Username must be 3–20 characters.';
+  if(p.length<6)return $('signupMsg2').textContent='Password must be at least 6 characters.';
+  if(db[u])return $('signupMsg2').textContent='That username is already taken.';
+  if(Object.values(db).some(x=>x.gmail===pendingSignup.gmail))return $('signupMsg2').textContent='That Gmail already has an account.';
+  const salt=crypto.getRandomValues(new Uint32Array(4)).join('')+Date.now();
+  db[u]={gmail:pendingSignup.gmail,salt,hash:await sha256(salt+p),email_verified:true,created_at:Date.now()};
+  saveUsers(db);
+  if($('rememberSignup').checked)await saveRememberedCredential(u,p);
+  enterUser(u,pendingSignup.gmail,$('rememberSignup').checked);
+};
+function enterUser(u,m,remember=true){USER=u;realMail=m;mailShown=false;if(remember)localStorage.setItem('py50_session_v5',u);else sessionStorage.setItem('py50_session_v5',u);loadState();$('sideUser').textContent='@'+u;$('authBtn').querySelector('span:last-child').textContent='Log out';$('authBtn').querySelector('.navicon').textContent='⎋';unlockApp();setView('home');updateTop();renderProblemList();if(!editor)initMonaco();else loadEditorForCurrent()}
+function logout(){localStorage.removeItem('py50_session_v5');sessionStorage.removeItem('py50_session_v5');USER=null;realMail='';loadState();$('sideUser').textContent='Create an account to continue';$('authBtn').querySelector('span:last-child').textContent='Create account';$('authBtn').querySelector('.navicon').textContent='+';lockApp();setView('auth');tabAuth(false);updateTop();toast('Signed out. Create an account to continue.')}
+function renderAccount(){const n=solvedCount(),r=userRate();$('acctUser').textContent=USER||'Guest';$('acctMail').textContent=realMail?(mailShown?realMail:realMail[0]+'•••••@gmail.com'):'Not signed in';$('mailToggle').style.display=realMail?'inline-block':'none';$('mailToggle').textContent=mailShown?'Hide':'Show';$('acctStatus').textContent=USER?'Signed in':'Guest mode';$('acctProgress').textContent=`${n} / ${PROBLEMS.length}`;$('acctRate').textContent=r.toLocaleString();$('metricSolved').textContent=n;$('acctBar').style.width=(n/PROBLEMS.length*100)+'%'}
+$('mailToggle').onclick=()=>{mailShown=!mailShown;renderAccount()};
+function renderProblemList(){const q=$('problemSearch').value.trim().toLowerCase(),df=$('difficultyFilter').value,sf=$('statusFilter').value;const rows=PROBLEMS.filter(p=>`${p.num} ${p.title} ${p.skill}`.toLowerCase().includes(q)&& (df==='all'||diffOf(p.num).toLowerCase().replace(' ','-')===df) && (sf==='all'||(sf==='solved'&&state.solved[p.num-1])||(sf==='unsolved'&&!state.solved[p.num-1]))); $('problemTable').innerHTML=`<div class="problem-row header"><div>#</div><div>Problem</div><div>Difficulty</div><div>Rating</div><div>Status</div><div></div></div>`+rows.map(p=>`<div class="problem-row"><div class="num">${String(p.num).padStart(2,'0')}</div><div><div class="problem-name">${esc(p.title)}</div><div class="problem-skill">${esc(p.skill)}</div></div><div><span class="tag diff">${diffOf(p.num)}</span></div><div><span class="tag rate">${rateOf(p.num)}</span></div><div class="solved-badge ${state.solved[p.num-1]?'ok':'no'}">${state.solved[p.num-1]?'✓ Solved':'○ Unsolved'}</div><div class="solve-link"><button class="btn" onclick="openProblem(${p.num-1})">Solve</button></div></div>`).join('')}
+$('problemSearch').oninput=renderProblemList;$('difficultyFilter').onchange=renderProblemList;$('statusFilter').onchange=renderProblemList;
+function openProblem(i){if(!USER){openAuth(true);return}state.index=i;save();setView('workspace');renderProblem();loadEditorForCurrent();}
+window.openProblem=openProblem;
+function renderProblem(){const p=PROBLEMS[state.index], solved=!!state.solved[state.index];$('problemPane').innerHTML=`<div class="problem-top"><div class="pnum">${p.num}.</div><div><div class="ptitle">${esc(p.title)}</div><div class="badges"><span class="tag diff">${diffOf(p.num)}</span><span class="tag rate">★ ${rateOf(p.num)} Rated</span><span class="tag">${esc(p.skill)}</span></div></div></div><div class="section"><div class="statement">${esc(p.statement)}</div></div><div class="kv"><b>Input</b><div>${esc(p.input)}</div></div><div class="kv"><b>Output</b><div>${esc(p.output)}</div></div><div class="kv"><b>Constraints</b><div>${esc(p.conditions)}</div></div><div class="section"><h4>Example</h4><div class="example-grid"><div class="sample"><div class="sample-cap">Input</div><pre>${esc(p.sample_in)}</pre></div><div class="sample"><div class="sample-cap">Output</div><pre>${esc(p.sample_out)}</pre></div></div></div><div class="explain"><div class="explain-head"><span>Problem Note</span><span class="tag">${solved?'Solved ✓':'Not solved yet'}</span></div><div class="explain-body">Read the input format, output format, and constraints carefully. This note does not contain a solution or hint.</div></div><div class="bn-explain"><div class="bn-explain-head"><b>বাংলা ব্যাখ্যা</b><button id="bnExplainToggle">Hide</button></div><div class="bn-explain-body" id="bnExplainBody">${esc(p.bangla||'এই সমস্যায় প্রশ্নে দেওয়া input থেকে প্রয়োজনীয় output বের করতে হবে।')}</div></div>`;const bt=$('bnExplainToggle');if(bt)bt.onclick=()=>{const b=$('bnExplainBody');const hidden=b.classList.toggle('hidden');bt.textContent=hidden?'Show':'Hide'}}
+function renderWorkspaceTab(tab){currentWsTab=tab;if(tab==='description'){renderProblem();return}const p=PROBLEMS[state.index];let c='';if(tab==='editorial')c=`<div class="section"><h4>Editorial</h4><div class="statement">Identify the required operations from the statement, choose the simplest correct control flow, and verify the sample before submitting.</div><div class="kv"><b>Key skill</b><div>${esc(p.skill)}</div></div></div>`;else if(tab==='solutions')c=`<div class="section"><h4>Solution approach</h4><div class="statement">Build a direct solution from the problem statement. Use the sample input to check intermediate values before you submit.</div><div class="kv"><b>Difficulty</b><div>${diffOf(p.num)} • ${rateOf(p.num)} rating</div></div></div>`;else c=`<div class="section"><h4>Submissions</h4><div class="statement">${state.history[state.index]?.length?state.history[state.index].map((h,i)=>`<div class="kv"><b>Submission ${i+1}</b><div>${esc(h.verdict)} • ${esc(h.time)} ms</div></div>`).join(''):'No submissions yet for this problem.'}</div></div>`;$('problemPane').innerHTML=c}
+document.querySelectorAll('.ws-tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.ws-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');renderWorkspaceTab(t.dataset.wstab)});
+function resultEmpty(){$('resultContent').innerHTML='<div class="empty">Run your code to see the test result.</div>'}
+function normalizeOut(s){return String(s??'').replace(/\r/g,'').trim().split(/\s+/).join(' ')}
+async function getPyodide(){if(pyodide)return pyodide;if(pyodidePromise)return pyodidePromise;toast('Loading Python engine...');pyodidePromise=(async()=>{if(!window.loadPyodide)await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/pyodide/v0.28.2/full/pyodide.js';sc.onload=resolve;sc.onerror=()=>reject(new Error('Python engine could not be loaded. Internet access is required the first time.'));document.head.appendChild(sc)});pyodide=await loadPyodide();return pyodide})();try{return await pyodidePromise}catch(e){pyodidePromise=null;throw e}}
+const PYODIDE_VERSION='0.28.3';
+let pyWorker=null,pyWorkerUrl=null,pyRequestId=0,pyWorkerReady=null;
+
+const pyWorkerSource=`
+self.pyodide=null;
+async function boot(){
+  importScripts('https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/pyodide.js');
+  self.pyodide=await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/'});
+  self.postMessage({type:'ready'});
+}
+function asText(v){
+  if(v==null)return '';
+  try{if(typeof v.toJs==='function'){const x=v.toJs();return typeof x==='string'?x:String(x);}}catch(e){}
+  return String(v);
+}
+self.onmessage=async(e)=>{
+  const d=e.data||{};
+  if(d.type!=='run')return;
+  try{
+    const code=String(d.code||''), input=String(d.input??'');
+    self.pyodide.globals.set('PY50_CODE',code);
+    self.pyodide.globals.set('PY50_INPUT',input);
+    const harness = \`
+import sys, io, contextlib, traceback, builtins, json
+_CODE = PY50_CODE
+_INPUT = PY50_INPUT
+_stream = io.StringIO(_INPUT)
+_output = io.StringIO()
+_error = io.StringIO()
+
+def _py50_input(prompt=''):
+    line = _stream.readline()
+    if line == '':
+        raise EOFError('EOF when reading a line')
+    return line.rstrip('\\\\r\\\\n')
+
+_safe_builtins = dict(builtins.__dict__)
+_safe_builtins['input'] = _py50_input
+_scope = {'__name__':'__main__','__builtins__':_safe_builtins}
+_ok = True
+_err_text = ''
+
+try:
+    with contextlib.redirect_stdout(_output), contextlib.redirect_stderr(_error):
+        exec(compile(_CODE, '<solution>', 'exec'), _scope, _scope)
+except BaseException:
+    _ok = False
+    traceback.print_exc(file=_error)
+
+_result = {
+    'ok': bool(_ok),
+    'out': _output.getvalue(),
+    'err': _error.getvalue()
+}
+json.dumps(_result)
+\`;
+    const result=await self.pyodide.runPythonAsync(harness);
+    const text=asText(result);
+    self.postMessage({type:'result',id:d.id,result:JSON.parse(text)});
+  }catch(err){
+    self.postMessage({type:'fatal',id:d.id,error:String(err?.stack||err?.message||err)});
+  }
+};
+boot().catch(err=>self.postMessage({type:'boot_error',error:String(err?.stack||err?.message||err)}));
+`;
+
+function createPyWorker(){
+  if(pyWorker) return;
+  pyWorkerUrl=URL.createObjectURL(new Blob([pyWorkerSource],{type:'text/javascript'}));
+  pyWorker=new Worker(pyWorkerUrl);
+  pyWorkerReady=new Promise((resolve,reject)=>{
+    pyWorker.addEventListener('message',(e)=>{
+      const d=e.data||{};
+      if(d.type==='ready') resolve(true);
+      else if(d.type==='boot_error') reject(new Error(d.error||'Python engine failed to load.'));
+      else routePyMessage(d);
+    });
+    pyWorker.addEventListener('error',(e)=>reject(new Error(e.message||'Python worker error.')));
+  });
+}
+
+function resetPyWorker(){
+  try{pyWorker?.terminate()}catch(e){}
+  pyWorker=null;
+  if(pyWorkerUrl){try{URL.revokeObjectURL(pyWorkerUrl)}catch(e){}}
+  pyWorkerUrl=null;
+  pyWorkerReady=null;
+}
+
+const pendingPyRuns=new Map();
+
+function routePyMessage(d){
+  const p=pendingPyRuns.get(d.id);
+  if(!p)return;
+  pendingPyRuns.delete(d.id);
+  if(d.type==='result')p.resolve(d.result);
+  else p.reject(new Error(d.error||'Python engine error.'));
+}
+
+async function runPython(code,input,timeoutMs=4000){
+  createPyWorker();
+  let fatal;
+  try{await pyWorkerReady}catch(e){resetPyWorker();throw e}
+  const id=++pyRequestId;
+  return await new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>{
+      pendingPyRuns.delete(id);
+      resetPyWorker();
+      reject(new Error(`Execution timed out after ${timeoutMs} ms.`));
+    },timeoutMs);
+    pendingPyRuns.set(id,{
+      resolve:(r)=>{clearTimeout(timer);resolve(r)},
+      reject:(e)=>{clearTimeout(timer);reject(e)}
+    });
+    try{pyWorker.postMessage({type:'run',id,code,input})}
+    catch(e){clearTimeout(timer);pendingPyRuns.delete(id);resetPyWorker();reject(e)}
+  });
+}
+
+function saveCode(){if(editor){state.codes[state.index]=editor.getValue();save()}}
+function loadEditorForCurrent(){if(editor)editor.setValue(state.codes[state.index]??PROBLEMS[state.index].default??'')}
+async function runSample(){
+  saveCode();
+  const code=editor?.getValue()||'';
+  if(!code.trim())return toast('Write some Python code first.');
+  const runBtn=$('runCodeTop'),submitBtn=$('submitCodeTop');
+  runBtn?.setAttribute('disabled',''); submitBtn?.setAttribute('disabled','');
+  if(runBtn)runBtn.textContent='⏳ Running...';
+  const p=PROBLEMS[state.index],t=performance.now();
+  try{const r=await runPython(code,p.sample_in,4000);const ms=Math.round(performance.now()-t);if(!r.ok){$('resultContent').innerHTML=`<div class="banner warn">Runtime Error</div><div class="meta">Sample Test • ${ms} ms</div><div class="testbox"><div class="testhead">Error</div><div style="padding:11px;color:#ffb8bf;font:10px/1.5 ui-monospace,monospace;white-space:pre-wrap">${esc(r.err)}</div></div>`}else{const ok=normalizeOut(r.out)===normalizeOut(p.sample_out);$('resultContent').innerHTML=`<div class="banner ${ok?'ok':'bad'}">${ok?'Accepted':'Wrong Answer'}</div><div class="meta">Sample Test • ${ms} ms</div><div class="testbox"><div class="testhead">Sample Result</div><div class="testgrid"><div class="smallbox"><div class="smallcap">Your Output</div><pre>${esc(r.out||'(empty)')}</pre></div><div class="smallbox"><div class="smallcap">Expected Output</div><pre>${esc(p.sample_out||'(empty)')}</pre></div></div></div>`}}catch(e){$('resultContent').innerHTML=`<div class="banner warn">Engine Error</div><div style="color:#ffb8bf;font-size:10px">${esc(e.message||e)}</div>`}
+  finally{
+    if(runBtn){runBtn.removeAttribute('disabled');runBtn.textContent='▶ Run'}
+    if(submitBtn){submitBtn.removeAttribute('disabled');submitBtn.textContent='☁ Submit'}
+  }
+}
+async function submitCode(){
+  saveCode();
+  const code=editor?.getValue()||'';
+  if(!code.trim())return toast('Write some Python code first.');
+  const runBtn=$('runCodeTop'),submitBtn=$('submitCodeTop');
+  runBtn?.setAttribute('disabled',''); submitBtn?.setAttribute('disabled','');
+  if(submitBtn)submitBtn.textContent='⏳ Submitting...';
+  const p=PROBLEMS[state.index],start=performance.now();let passed=0,verdict='Accepted',firstError='';
+  try{for(const [input,expected] of p.tests){const r=await runPython(code,input,4000);if(!r.ok){verdict='Runtime Error';firstError=r.err;break}if(normalizeOut(r.out)!==normalizeOut(expected)){verdict='Wrong Answer';break}passed++}const ms=Math.round(performance.now()-start);state.history[state.index]=[...(state.history[state.index]||[]),{verdict,time:ms}].slice(-10);if(verdict==='Accepted')state.solved[state.index]=true;save();updateTop();renderProblemList();renderProblem();$('resultContent').innerHTML=verdict==='Accepted'?`<div class="banner ok">✓ Accepted</div><div class="meta">${p.tests.length} / ${p.tests.length} test cases passed • ${ms} ms</div><div class="testbox"><div class="testhead">Submission Result</div><div style="padding:11px;color:#9eabb8;font-size:10px">The solution passed the available official tests.</div></div>`:`<div class="banner ${verdict==='Runtime Error'?'warn':'bad'}">${verdict==='Runtime Error'?'Runtime Error':'Wrong Answer'}</div><div class="meta">${passed} / ${p.tests.length} test cases passed • ${ms} ms</div>${verdict==='Runtime Error'?`<div class="testbox"><div class="testhead">Error</div><div style="padding:11px;color:#ffb8bf;font:10px/1.5 ui-monospace,monospace;white-space:pre-wrap">${esc(firstError)}</div></div>`:'<div style="color:#9eabb8;font-size:10px">Some test cases did not match the expected output.</div>'}`;}catch(e){$('resultContent').innerHTML=`<div class="banner warn">Judge Error</div><div style="color:#ffb8bf;font-size:10px">${esc(e.message||e)}</div>`}
+  finally{
+    if(runBtn){runBtn.removeAttribute('disabled');runBtn.textContent='▶ Run'}
+    if(submitBtn){submitBtn.removeAttribute('disabled');submitBtn.textContent='☁ Submit'}
+  }
+}
+function initMonaco(){require.config({paths:{vs:'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs'}});require(['vs/editor/editor.main'],()=>{monaco.editor.defineTheme('py50',{base:'vs-dark',inherit:true,rules:[],colors:{'editor.background':'#0d1014','editorGutter.background':'#0d1014','editorLineNumber.foreground':'#68717e','editorLineNumber.activeForeground':'#e7ebef','editorCursor.foreground':'#ffffff','editor.selectionBackground':'#284e72','editorWidget.background':'#171a20','editorSuggestWidget.background':'#171a20','editorSuggestWidget.selectedBackground':'#2b313a'}});editor=monaco.editor.create($('editor'),{value:'',language:'python',theme:'py50',automaticLayout:true,fontSize:14,lineHeight:21,tabSize:4,insertSpaces:true,minimap:{enabled:false},wordWrap:'off',scrollBeyondLastLine:false,quickSuggestions:true,suggestOnTriggerCharacters:true,bracketPairColorization:{enabled:true},guides:{bracketPairs:true}});monaco.languages.registerCompletionItemProvider('python',{provideCompletionItems:(model,pos)=>{const words=['print','input','range','len','int','float','str','list','dict','set','tuple','sum','min','max','sorted','enumerate','zip','abs','round'];return{suggestions:words.map(w=>({label:w,kind:monaco.languages.CompletionItemKind.Function,insertText:w,range:{startLineNumber:pos.lineNumber,startColumn:pos.column,endLineNumber:pos.lineNumber,endColumn:pos.column}}))}}});editor.onDidChangeModelContent(saveCode);loadEditorForCurrent();})}
+$('runBtn')?.remove();
+const workActions=document.createElement('div');workActions.style.display='none';workActions.style.marginLeft='12px';workActions.style.gap='8px';workActions.innerHTML='<button class="btn" id="runCodeTop">▶ Run</button><button class="btn green" id="submitCodeTop">☁ Submit</button>';document.querySelector('.topbar').appendChild(workActions);
+const syncActions=()=>{workActions.style.display=(USER && $('view-workspace').classList.contains('active'))?'flex':'none'};
+const baseSetView=setView;setView=function(name){baseSetView(name);syncActions()};
+$('runCodeTop').onclick=runSample;$('submitCodeTop').onclick=submitCode;
+$('formatBtn').onclick=()=>editor?.getAction('editor.action.formatDocument')?.run();$('clearBtn').onclick=()=>{if(editor){editor.setValue('');saveCode();resultEmpty()}};$('backProblems').onclick=()=>setView('problems');
+(function boot(){
+  const remembered=localStorage.getItem('py50_session_v5'), temporary=sessionStorage.getItem('py50_session_v5'), u=remembered||temporary;
+  if(u){const db=users();if(db[u]&&db[u].email_verified){USER=u;realMail=db[u].gmail}}
+  loadState();
+  if(USER){unlockApp();$('sideUser').textContent='@'+USER;$('authBtn').querySelector('span:last-child').textContent='Log out';$('authBtn').querySelector('.navicon').textContent='⎋';updateTop();renderProblemList();setView('home');initMonaco()}
+  else{$('sideUser').textContent='Create an account to continue';$('authBtn').querySelector('span:last-child').textContent='Create account';$('authBtn').querySelector('.navicon').textContent='+';updateTop();lockApp();setView('auth');tabAuth(false);$('signupGmail').focus()}
+})();
+</script>
+</body>
+</html>
